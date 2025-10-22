@@ -82,6 +82,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      let isNewBenchmark = false;
+      if (typeof latestValue === "number" && latestValue >= benchmarkValue) {
+        isNewBenchmark = true;
+      }
+
       const numHeaders = headers.length;
       const startCol = Math.max(1, numHeaders - 7); // Use 7 for 7 days
       const trendDates = headers.slice(startCol, numHeaders);
@@ -108,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
           trendValuesRaw: trendValuesRaw, // Use raw for calculation
           trendValuesFormatted: trendValuesFormatted, // Use formatted for chart
           totalDays: totalDays, // *** Pass total days ***
+          isNewBenchmark: isNewBenchmark,
         };
 
         if (latestValue < benchmarkValue) {
@@ -134,15 +140,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const createListItem = (country, listElement, isAbove = false) => {
       const item = document.createElement("div");
       item.className = `country-item ${isAbove ? "above" : ""}`; // Add 'above' class if needed
-      // Corrected innerHTML to include BM value
+
+      // *** REPLACE START ***
+      // Decide what benchmark text to show
+      let bmText = "";
+      if (isAbove && country.isNewBenchmark) {
+        // If it's in the 'Above' list AND it set a new benchmark today
+        bmText = `🚀 New BM!`; // Show latest value as the new BM
+      } else {
+        // Otherwise (it's below, or it's above but didn't set a new BM today)
+        bmText = `(BM: ${country.benchmarkAAPU.toFixed(2)})`; // Show the calculated historical BM
+      }
+
+      // Assign the final HTML
       item.innerHTML = `
-                 <strong>${country.name}</strong>
-                 <span>${country.latestAAPU.toFixed(
-                   2
-                 )} <small>(BM: ${country.benchmarkAAPU.toFixed(
-        2
-      )})</small></span> 
-             `;
+          <strong>${country.name}</strong>
+          <span>${country.latestAAPU.toFixed(
+            2
+          )} <small>${bmText}</small></span> 
+ `;
+      // *** REPLACE END ***
+
       item.addEventListener("click", () => showWTHReport(country));
       listElement.appendChild(item);
     };
@@ -309,121 +327,145 @@ document.addEventListener("DOMContentLoaded", () => {
     const retKPIs = kpiMap.filter((k) => k.type === "ret");
     const adKPIs = kpiMap.filter((k) => k.type === "ad");
 
+    // --- Helper function to generate list items ---
     const generateListItems = (kpiList) => {
-      return kpiList
-        .map((k) => {
-          const l = latest[k.key] || 0;
-          // Handle missing benchmark data
-          const b = bench ? bench[k.key] || 0 : 0;
-          const change_pp = bench ? (l - b) * 100 : 0;
+      // *** NEW: Check if it's a new benchmark day ***
+      if (country.isNewBenchmark) {
+        // If new benchmark, just show the current values without comparison
+        return kpiList
+          .map((k) => {
+            const l = latest[k.key] || 0;
+            // Only show current value
+            return `<li>${k.name}: <strong>${(l * 100).toFixed(
+              2
+            )}%</strong> <small>(New BM)</small></li>`;
+          })
+          .join("");
+      } else {
+        // Original logic for comparison if NOT a new benchmark
+        return kpiList
+          .map((k) => {
+            const l = latest[k.key] || 0;
+            const b = bench ? bench[k.key] || 0 : 0;
+            const change_pp = bench ? (l - b) * 100 : 0;
 
-          let cssClass = "";
-          let kpiWarningSymbol = "";
+            let cssClass = "";
+            let kpiWarningSymbol = "";
 
-          if (bench && change_pp < -1.0) {
-            // Only color if we have benchmark data
-            cssClass = "down";
-            if (change_pp < -4.0) {
-              kpiWarningSymbol = " ❗";
+            if (bench && change_pp < -1.0) {
+              cssClass = "down";
+              if (change_pp < -4.0) {
+                kpiWarningSymbol = " ❗";
+              }
+            } else if (bench && change_pp > 1.0) {
+              cssClass = "up";
             }
-          } else if (bench && change_pp > 1.0) {
-            cssClass = "up";
-          }
 
-          // Show BM value only if we have it
-          const bmText = bench ? `(${(b * 100).toFixed(2)}% BM)` : "(BM N/A)";
+            const bmText = bench ? `(${(b * 100).toFixed(2)}% BM)` : "(BM N/A)";
 
-          return `<li>${k.name}: <strong class="${cssClass}">${(
-            l * 100
-          ).toFixed(
-            2
-          )}%${kpiWarningSymbol}</strong> <small>${bmText}</small></li>`;
-        })
-        .join("");
-    };
+            return `<li>${k.name}: <strong class="${cssClass}">${(
+              l * 100
+            ).toFixed(
+              2
+            )}%${kpiWarningSymbol}</strong> <small>${bmText}</small></li>`;
+          })
+          .join("");
+      }
+    }; // --- End of generateListItems ---
 
     const retListHTML = generateListItems(retKPIs);
     const adListHTML = generateListItems(adKPIs);
 
-    // --- 2. *** COMBINED Trend Analysis Logic (NA as 0 for Down-streak) *** ---
+    // --- 2. *** CORRECTED Trend Analysis Logic *** ---
     let consecutiveDays = 0;
     let trendSummary = "";
-    let trendSummaryText = ""; // To store just the text part
-    const trendValues = country.trendValuesRaw; // Use raw numbers
+    let trendSummaryText = "";
+    const trendValues = country.trendValuesRaw;
     const n = trendValues.length;
-    const trendDaysCount = country.totalDays; // Store the total number of days for the title
-    const benchmarkAAPU = country.benchmarkAAPU; // Benchmark value
+    const trendDaysCount = country.totalDays;
+    const benchmarkAAPU = country.benchmarkAAPU;
 
-    if (n > 0) {
+    // *** ADD THIS IF CHECK ***
+    if (country.isNewBenchmark) {
+      trendSummaryText = `🚀 New Benchmark!`;
+      trendSummary = `<p>${trendSummaryText}</p>`;
+    }
+    // *** END ADDED IF CHECK ***
+    // Add an 'else' around the original logic
+    else if (n > 0) {
       if (isDown) {
-        // isDown is defined earlier (latest AAPU < benchmarkAAPU)
-        // Count consecutive days BELOW benchmark, treating null as 0 (below BM)
+        // ... (rest of the original 'isDown' logic remains unchanged inside this else if) ...
         for (let i = n - 1; i >= 0; i--) {
-          const value = trendValues[i]; // Can be number or null
-          // Condition: value is null OR value is less than benchmark
+          const value = trendValues[i];
           if (value === null || value < benchmarkAAPU) {
             consecutiveDays++;
           } else {
-            break; // Streak broken (value was >= benchmark)
+            break;
           }
         }
-        // Generate summary text using the refined wording
         if (
           consecutiveDays === 1 &&
           n > 1 &&
           trendValues[n - 2] !== null &&
           trendValues[n - 2] >= benchmarkAAPU
         ) {
-          trendSummaryText = `Dropped below BM today`; // Specific case: Was ok yesterday
+          trendSummaryText = `Dropped below BM today`;
         } else if (consecutiveDays > 0) {
           trendSummaryText = `Below BM for last ${consecutiveDays} consecutive day${
             consecutiveDays > 1 ? "s" : ""
           }`;
         } else {
-          trendSummaryText = `Status unclear (check recent data)`; // Fallback
+          trendSummaryText = `Status unclear (check recent data)`;
         }
         trendSummary = `<p>${trendSummaryText}.</p>`;
       } else {
-        // Latest AAPU is AT or ABOVE benchmark
-        // Count consecutive days AT OR ABOVE benchmark. Null (0) breaks this streak.
+        // AAPU is UP or Equal (but not a new benchmark today)
+        // ... (rest of the original 'else' logic remains unchanged inside this block) ...
         for (let i = n - 1; i >= 0; i--) {
           const value = trendValues[i];
-          // Condition: value is NOT null AND value is >= benchmark
           if (value !== null && value >= benchmarkAAPU) {
             consecutiveDays++;
           } else {
-            break; // Streak broken (value was null or < benchmark)
+            break;
           }
         }
-        // Generate summary text using the refined wording
         if (
           consecutiveDays === 1 &&
           n > 1 &&
           (trendValues[n - 2] === null || trendValues[n - 2] < benchmarkAAPU)
         ) {
-          trendSummaryText = `Rose to/above BM today`; // Specific case: Was below yesterday
+          trendSummaryText = `Rose to/above BM today`;
         } else if (consecutiveDays > 0) {
           trendSummaryText = `At/Above BM for last ${consecutiveDays} consecutive day${
             consecutiveDays > 1 ? "s" : ""
           }`;
         } else {
-          trendSummaryText = `Status unclear (check recent data)`; // Fallback
+          trendSummaryText = `Status unclear (check recent data)`;
         }
         trendSummary = `<p>${trendSummaryText}.</p>`;
       }
     } else {
+      // n <= 0
       trendSummaryText = "Not enough data";
       trendSummary = `<p>${trendSummaryText}.</p>`;
     }
     // --- END Trend Analysis Logic ---
 
-    // --- 3. *** FINAL Dynamic Analysis Section (Uses >4pp threshold, clearer causation) *** ---
+    // --- 3. *** FINAL Dynamic Analysis Section (Includes New BM check) *** ---
     let analysisTitle = "Analysis";
     let analysisAdvice = "";
     let whatHappenedTitle = isDown ? "What Happened" : "What's Working";
 
-    if (bench) {
-      // Only run detailed analysis if benchmark data exists
+    // *** ADDED: Special Case for New Benchmark ***
+    if (country.isNewBenchmark) {
+      analysisTitle = "🚀 New Benchmark Achieved!";
+      analysisAdvice =
+        "<p>Performance hit a new peak today! Analyze the <strong>Levels 1-20 experience</strong> and recent changes to understand what drove this success and how to maintain it.</p>";
+      whatHappenedTitle = "Today's Performance (New Benchmark)"; // Adjust title
+    }
+    // *** WRAPPED original logic in 'else' ***
+    else if (bench) {
+      // Only run detailed analysis if benchmark data exists AND it's not a new BM day
       // Calculate differences for key metrics
       const diff_lvl20 =
         ((latest["% of users at 20"] || 0) - (bench["% of users at 20"] || 0)) *
@@ -469,7 +511,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "<p>Early retention is stable, but a <strong>significant (>4%) drop</strong> occurs between <strong>Levels 20-70</strong>. This mid-game failure is likely the main reason fewer users reach later ad milestones, hurting AAPU. Investigate difficulty or engagement in this range.</p>";
 
           // Priority 3: Monetization Problem (Retention stable/minor drop, but Ads show >4pp drop)
-          // Check if ANY retention had a slight drop OR if ALL retention is truly stable/up
         } else if (
           !earlyRetSlightDrop &&
           !midRetSlightDrop &&
@@ -487,7 +528,6 @@ document.addEventListener("DOMContentLoaded", () => {
           analysisTitle = "How to Improve (Mild Drops)";
 
           // Find the largest magnitude mild drop among key metrics
-          // We only care about negative diffs here (drops)
           let maxMildDrop = 0;
           let primaryMildIssue = "retention"; // Default assumption
 
@@ -500,7 +540,6 @@ document.addEventListener("DOMContentLoaded", () => {
             primaryMildIssue = "mid_retention";
           }
           if (diff_lvl70 < -1.0 && Math.abs(diff_lvl70) > maxMildDrop) {
-            // Update primary issue only if Lvl 70 drop is clearly larger than Lvl 50
             if (
               primaryMildIssue !== "mid_retention" ||
               Math.abs(diff_lvl70) > Math.abs(diff_lvl50) + 0.5
@@ -510,14 +549,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
           if (diff_ads10 < -1.0 && Math.abs(diff_ads10) > maxMildDrop) {
-            // Prioritize ads only if its drop is clearly larger than retention drops seen so far
             if (Math.abs(diff_ads10) > maxMildDrop + 0.5) {
               maxMildDrop = Math.abs(diff_ads10);
               primaryMildIssue = "ads";
             }
           }
           if (diff_ads20 < -1.0 && Math.abs(diff_ads20) > maxMildDrop) {
-            // Prioritize ads only if its drop is clearly larger than retention drops seen so far
             if (Math.abs(diff_ads20) > maxMildDrop + 0.5) {
               maxMildDrop = Math.abs(diff_ads20);
               primaryMildIssue = "ads";
@@ -534,7 +571,6 @@ document.addEventListener("DOMContentLoaded", () => {
           } else if (primaryMildIssue === "ads") {
             analysisAdvice = `<p>Multiple mild drops (>1% but <4%), but the largest is in <strong>Early Ad Engagement (Ads 10/20)</strong>. Prioritize checking monetization factors:</p><ol><li><strong>Session Length</strong> vs BM?</li><li><strong>Ad Failures</strong> ('None' inter_show_req) vs BM?</li><li><strong>Playtime</strong> vs BM?</li></ol>`;
           } else {
-            // Fallback just in case (shouldn't be reached if logic above is sound)
             analysisAdvice =
               "<p>Multiple mild drops detected. Review overall funnel performance starting from Level 1-20.</p>";
           }
@@ -576,13 +612,17 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="wth-report">
                 <h2>Country Performance: ${country.name}</h2>
                 <p class="summary">
-                    <strong>Current AAPU: <span class="${statusClass}">${country.latestAAPU.toFixed(
+    <strong>Current AAPU: <span class="${statusClass}">${country.latestAAPU.toFixed(
       2
     )}</span></strong> 
-                    (Benchmark: ${country.benchmarkAAPU.toFixed(2)} on ${
-      country.benchmarkDate
-    })
-                </p>
+    ${
+      country.isNewBenchmark
+        ? `(🚀 New Benchmark!)`
+        : `(Benchmark: ${country.benchmarkAAPU.toFixed(2)} on ${
+            country.benchmarkDate
+          })`
+    }
+</p>
                 <h3>${whatHappenedTitle}</h3>
                 <div class="kpi-columns">
                     <div class="kpi-column">
@@ -620,4 +660,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
