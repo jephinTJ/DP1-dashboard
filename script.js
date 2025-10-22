@@ -29,13 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
       workbook = XLSX.read(data, { type: "array" });
 
       // Start the analysis
-      processBenchmarkSheet();
+      processBenchmarkSheet(file.name);
     };
     reader.readAsArrayBuffer(file);
   });
 
   // --- Function to process the 'BM' sheet ---
-  function processBenchmarkSheet() {
+  function processBenchmarkSheet(fileName) {
     const bmSheetName = workbook.SheetNames.find(
       (name) => name.toUpperCase() === "BM"
     );
@@ -57,8 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const latestDateCol = headers.length - 1;
     const totalDays = latestDateCol; // *** Total number of date columns ***
 
-    mainTitle.textContent = `AAPU Performance Dashboard of ${latestDate}`;
-    document.title = `AAPU Report | ${latestDate}`;
+    // --- Determine Game Name from Filename ---
+    let gameName = "DIQ2"; // Default to DIQ2
+    if (fileName && fileName.toUpperCase().includes("DIQ-3")) {
+      gameName = "DIQ-3";
+    } // Add more 'else if' conditions here if you have other game names like DIQ-4 etc.
+
+    // --- Update Title using Game Name and Date ---
+    mainTitle.textContent = `${gameName} AAPU Performance Dashboard of ${latestDate}`;
+    document.title = `AAPU Report | ${gameName} | ${latestDate}`; // Update browser tab too
 
     const criticalCountries = [];
     const belowCountries = [];
@@ -70,6 +77,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const country = row[0];
       const latestValue = row[latestDateCol];
+
+      // *** ADD THIS BLOCK START ***
+      // Get installs from the latest sheet for this country
+      const latestSheetName = workbook.SheetNames.find((name) =>
+        name.includes(latestDate)
+      );
+      let userInstalls = 0;
+      if (latestSheetName) {
+        const latestKPIs = getKPIsForCountry(latestSheetName, country); // Use helper
+        if (latestKPIs && latestKPIs["User Installed"] !== undefined) {
+          // Make sure installs is a number, handle potential 'NA' or errors
+          userInstalls = Number(latestKPIs["User Installed"]) || 0;
+        }
+      }
+
+      // --- FILTER CONDITION ---
+      if (userInstalls <= 10) {
+        continue; // Skip this country if installs are 10 or less
+      }
+      // *** ADD THIS BLOCK END ***
 
       let benchmarkValue = -1.0;
       let benchmarkDate = "N_A";
