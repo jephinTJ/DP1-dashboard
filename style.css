@@ -207,3 +207,9 @@ header pre {
   margin-bottom: 8px; /* Space between KPI items */
   font-size: 0.95em;
 }
+code {
+  background-color: #f0f0f0; /* Light gray background */
+  padding: 2px 6px; /* Adds a little space inside the box */
+  border-radius: 4px; /* Rounds the corners */
+  border: 1px solid #ddd; /* A light border, like in your first image */
+}
