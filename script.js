@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalDays = latestDateCol; // *** Total number of date columns ***
 
     // --- Determine Game Name from Filename ---
-    let gameName = "DIQ2"; // Default to DIQ2
+    let gameName = "DIQ-2"; // Default to DIQ2
     if (fileName && fileName.toUpperCase().includes("DIQ-3")) {
       gameName = "DIQ-3";
     } // Add more 'else if' conditions here if you have other game names like DIQ-4 etc.
@@ -687,3 +687,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
