@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const latestDateCol = headers.length - 1;
     const totalDays = latestDateCol; // *** Total number of date columns ***
 
-    mainTitle.textContent = `DIQ2 AAPU Performance Dashboard of ${latestDate}`;
+    mainTitle.textContent = `AAPU Performance Dashboard of ${latestDate}`;
     document.title = `AAPU Report | ${latestDate}`;
 
     const criticalCountries = [];
@@ -620,3 +620,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
