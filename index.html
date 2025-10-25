@@ -6,19 +6,31 @@
     <title>AAPU Report Tool</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <header>
       <h1 id="mainTitle">AAPU Performance Dashboard</h1>
       <p>
-        Upload your <code>Daily Dp1 All Geo.xlsx</code> file to see performance.
+        Upload your <pre>Daily Dp1 All Geo.xlsx</pre> file to see performance. 
       </p>
     </header>
 
     <div class="upload-container">
       <input type="file" id="fileUploader" accept=".xlsx, .xls" />
+    </div>
+
+    <div class="search-container"> 
+      <div class="compare-toggle-container">
+        <span class="toggle-label-small">Compare mode</span>
+        <label class="switch switch-small">
+          <input type="checkbox" id="compareToggle">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="search-input-wrapper">
+          <input type="text" id="countrySearch" placeholder="Search for a country..." />
+      </div>
     </div>
 
     <div id="allResultsContainer">
@@ -47,10 +59,23 @@
     <div id="reportModal" class="modal-hidden">
       <div class="modal-content">
         <button id="closeModalButton">&times;</button>
-        <div id="reportContent"></div>
+        
+        <div class="report-header">
+            <h2>Country Performance: <span id="reportCountryName"></span></h2>
+            <p class="summary"></p> </div>
+        
+        <div id="reportDetails">
+            {/* Report details will be injected here by JS */}
+        </div>
       </div>
     </div>
-
+    <div id="comparisonModal" class="modal-hidden">
+      <div class="modal-content">
+        <button id="closeCompareModalBtn">&times;</button>
+        <div class="comparison-container" id="compareContainer">
+          </div>
+      </div>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>
