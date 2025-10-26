@@ -965,10 +965,10 @@ document.addEventListener("DOMContentLoaded", () => {
       finalDetailsHTML += `
             <h3>Trend Analysis (last ${reportData.trendDaysCount} days)</h3> 
             ${reportData.trendSummary} 
-            <canvas id="trendChart-${reportId}" height="150"></canvas>
-            <h3>${reportData.analysisTitle}</h3>
-            ${reportData.analysisAdvice}
-        `;
+            <canvas id="trendChart-${reportId}" height="150"></canvas> 
+            `;
+      // <-- REMOVED Analysis Title h3
+      // <-- REMOVED Analysis Advice
     }
 
     finalDetailsHTML += `
