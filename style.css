@@ -178,7 +178,16 @@ header pre {
   max-width: 800px;
   position: relative;
   animation: slide-in 0.3s ease-out;
+  cursor: default; /* <-- ADD THIS LINE */
 }
+/* --- START: Added Hover Cursor Change --- */
+#reportModal:hover,
+#comparisonModal:hover {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8l3.147 3.146a.5.5 0 0 1-.708.708L8 8.707l-3.146 3.147a.5.5 0 0 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z"/></svg>'),
+    auto;
+  /* Uses an embedded white 'X' SVG as the cursor */
+}
+/* --- END: Added Hover Cursor Change --- */
 #closeModalButton {
   position: absolute;
   top: 10px;
@@ -440,6 +449,7 @@ input:checked + .slider:before {
 #comparisonModal .modal-content {
   max-width: 90vw; /* Make it very wide */
   min-height: 400px;
+  cursor: default; /* <-- ADD THIS LINE */
 }
 
 #comparisonModal #closeCompareModalBtn {
