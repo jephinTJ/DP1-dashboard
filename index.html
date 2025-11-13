@@ -20,16 +20,20 @@
       <input type="file" id="fileUploader" accept=".xlsx, .xls" />
     </div>
 
-    <div class="search-container"> 
+    <div class="search-container">
       <div class="compare-toggle-container">
         <span class="toggle-label-small">Compare mode</span>
         <label class="switch switch-small">
-          <input type="checkbox" id="compareToggle">
+          <input type="checkbox" id="compareToggle" />
           <span class="slider round"></span>
         </label>
       </div>
       <div class="search-input-wrapper">
-          <input type="text" id="countrySearch" placeholder="Search for a country..." />
+        <input
+          type="text"
+          id="countrySearch"
+          placeholder="Search for a country..."
+        />
       </div>
     </div>
 
@@ -55,28 +59,59 @@
         </div>
       </div>
     </div>
+    <div
+      id="aapuResultsContainer"
+      class="results-container"
+      style="
+        display: flex;
+        justify-content: space-around;
+        gap: 20px;
+        max-width: 1500px;
+        margin: 20px auto;
+      "
+    >
+      <div class="list-container" style="background-color: #fff8f8">
+        <h2>Low AAPU (<7)</h2>
+        <div id="lowList" class="country-list-wrapper">
+          <p class="placeholder">Waiting for file...</p>
+        </div>
+      </div>
+
+      <div class="list-container" style="background-color: #fcfbf1">
+        <h2>Moderate AAPU (7-8)</h2>
+        <div id="moderateList" class="country-list-wrapper">
+          <p class="placeholder">Waiting for file...</p>
+        </div>
+      </div>
+
+      <div class="list-container" style="background-color: #f1f8ee">
+        <h2>Good AAPU (>8)</h2>
+        <div id="goodList" class="country-list-wrapper">
+          <p class="placeholder">Waiting for file...</p>
+        </div>
+      </div>
+    </div>
 
     <div id="reportModal" class="modal-hidden">
       <div class="modal-content">
         <button id="closeModalButton">&times;</button>
-        
+
         <div class="report-header">
-            <h2>Country Performance: <span id="reportCountryName"></span></h2>
-            <p class="summary"></p> </div>
-        
+          <h2>Country Performance: <span id="reportCountryName"></span></h2>
+          <p class="summary"></p>
+        </div>
+
         <div id="reportDetails">
-            {/* Report details will be injected here by JS */}
+          {/* Report details will be injected here by JS */}
         </div>
       </div>
     </div>
     <div id="comparisonModal" class="modal-hidden">
       <div class="modal-content">
         <button id="closeCompareModalBtn">&times;</button>
-        <div class="comparison-container" id="compareContainer">
-          </div>
+        <div class="comparison-container" id="compareContainer"></div>
       </div>
     </div>
     <script src="script.js"></script>
   </body>
 </html>
-
