@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const criticalList = document.getElementById("criticalList");
   const belowList = document.getElementById("belowList");
   const aboveList = document.getElementById("aboveList");
+  const lowList = document.getElementById("lowList");
+  const moderateList = document.getElementById("moderateList");
+  const goodList = document.getElementById("goodList");
   const modal = document.getElementById("reportModal");
   // const modalContent = document.getElementById("reportContent"); // We don't use this ID anymore
   const closeModalButton = document.getElementById("closeModalButton");
@@ -51,6 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
     criticalList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
     belowList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
     aboveList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
+    lowList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
+    moderateList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
+    goodList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -112,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } // Add more 'else if' conditions here if you have other game names like DIQ-4 etc.
 
     // --- Update Title using Game Name and Date ---
-    mainTitle.textContent = `${gameName} AAPU Performance Dashboard of ${latestDate}`;
+    mainTitle.innerHTML = `${gameName} AAPU Performance Dashboard of ${latestDate} <span style="font-size: 0.6em; color: #737373; vertical-align: middle;">(Last ${totalDays} Days)</span>`;
     document.title = `AAPU Report | ${gameName} | ${latestDate}`; // Update browser tab too
 
     const criticalCountries = [];
@@ -230,6 +236,16 @@ document.addEventListener("DOMContentLoaded", () => {
       // --- END: ADDED CATCH BLOCK ---
     } // This is the closing brace for the main 'for' loop
     displayCountryLists(criticalCountries, belowCountries, aboveCountries);
+    // --- NEW AAPU LOGIC ---
+    const low = [],
+      moderate = [],
+      good = [];
+    allCountriesData.forEach((c) => {
+      if (c.latestAAPU < 7) low.push(c);
+      else if (c.latestAAPU <= 8) moderate.push(c);
+      else good.push(c);
+    });
+    displayAAPULists(low, moderate, good);
   }
 
   // --- Function to display THREE lists ---
@@ -302,7 +318,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchTerm = countrySearchInput.value.toLowerCase();
 
     // An array of the 3 list elements
-    const lists = [criticalList, belowList, aboveList];
+    const lists = [
+      criticalList,
+      belowList,
+      aboveList,
+      lowList,
+      moderateList,
+      goodList,
+    ];
 
     lists.forEach((listElement) => {
       const allItems = listElement.querySelectorAll(".country-item");
@@ -1194,5 +1217,45 @@ document.addEventListener("DOMContentLoaded", () => {
     // Show the modal
     comparisonModal.style.display = "flex";
     comparisonModal.classList.remove("modal-hidden");
+  }
+  function displayAAPULists(low, mod, good) {
+    [
+      [low, lowList],
+      [mod, moderateList],
+      [good, goodList],
+    ].forEach(([data, element]) => {
+      element.innerHTML = "";
+      if (data.length === 0) {
+        element.innerHTML = '<p class="placeholder">No countries found.</p>';
+      } else {
+        data.forEach((country) => {
+          const item = document.createElement("div");
+
+          // 1. Determine Color (Green if New BM, otherwise default Red)
+          const isGreen = country.isNewBenchmark;
+          item.className = `country-item ${isGreen ? "above" : ""}`;
+
+          // 2. Determine Text (Show "New BM!" if green, or BM value if red)
+          let bmText = "";
+          if (isGreen) {
+            bmText = `🚀 New BM!`;
+          } else {
+            bmText = `(BM: ${country.benchmarkAAPU.toFixed(2)})`;
+          }
+
+          item.innerHTML = `<strong>${
+            country.name
+          }</strong> <span>${country.latestAAPU.toFixed(
+            2
+          )} <small>${bmText}</small></span>`;
+          item.addEventListener("click", () =>
+            isCompareMode
+              ? handleCompareSelection(country, item)
+              : showWTHReport(country)
+          );
+          element.appendChild(item);
+        });
+      }
+    });
   }
 });
