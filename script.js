@@ -107,9 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
     const headers = data[0];
-    const latestDate = headers[headers.length - 1];
-    const latestDateCol = headers.length - 1;
-    const totalDays = latestDateCol; // *** Total number of date columns ***
+    // FIXED: Latest date is now at Index 1 (Column B), not the end
+    const latestDate = headers[1];
+    const latestDateCol = 1;
+    const totalDays = headers.length - 1; // Total days is headers minus the 'Country' column
 
     // --- Determine Game Name from Filename ---
     let gameName = "DIQ-2"; // Default to DIQ2
@@ -168,7 +169,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let benchmarkValue = -1.0;
         let benchmarkDate = "N_A";
 
-        for (let j = 1; j < latestDateCol; j++) {
+        // FIXED: Loop starts at 2 (past data) and goes to the end of the row
+        for (let j = 2; j < headers.length; j++) {
           const currentValue = row[j];
           if (
             typeof currentValue === "number" &&
@@ -184,14 +186,13 @@ document.addEventListener("DOMContentLoaded", () => {
           isNewBenchmark = true;
         }
 
-        const numHeaders = headers.length;
-        const startCol = Math.max(1, numHeaders - 7); // Use 7 for 7 days
-        const trendDates = headers.slice(startCol, numHeaders);
-        // Store raw numbers for trend calculation
+        const trendDates = headers.slice(1, 8).reverse();
+
         const trendValuesRaw = row
-          .slice(startCol, numHeaders)
-          .map((v) => (typeof v === "number" ? v : null));
-        // For chart display
+          .slice(1, 8)
+          .map((v) => (typeof v === "number" ? v : null))
+          .reverse();
+
         const trendValuesFormatted = trendValuesRaw.map((v) =>
           v !== null ? v.toFixed(2) : null
         );
