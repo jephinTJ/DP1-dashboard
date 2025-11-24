@@ -113,10 +113,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalDays = headers.length - 1; // Total days is headers minus the 'Country' column
 
     // --- Determine Game Name from Filename ---
-    let gameName = "DIQ-2"; // Default to DIQ2
-    if (fileName && fileName.toUpperCase().includes("DIQ-3")) {
-      gameName = "DIQ-3";
-    } // Add more 'else if' conditions here if you have other game names like DIQ-4 etc.
+    let gameName = ""; // Default is empty (No name)
+
+    if (fileName) {
+      const upperName = fileName.toUpperCase();
+      if (upperName.includes("DIQ-1")) {
+        gameName = "DIQ-1";
+      } else if (upperName.includes("DIQ-2")) {
+        gameName = "DIQ-2";
+      } else if (upperName.includes("DIQ-3")) {
+        gameName = "DIQ-3";
+      }
+    }
 
     // --- Update Title using Game Name and Date ---
     mainTitle.innerHTML = `${gameName} AAPU Performance Dashboard of ${latestDate} <span style="font-size: 0.6em; color: #737373; vertical-align: middle;">(Last ${totalDays} Days)</span>`;
