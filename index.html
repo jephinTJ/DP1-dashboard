@@ -11,13 +11,34 @@
   <body>
     <header>
       <h1 id="mainTitle">AAPU Performance Dashboard</h1>
-      <p>
-        Upload your <code>Daily Dp1 All Geo.xlsx</code> file to see performance.
-      </p>
     </header>
 
     <div class="upload-container">
-      <input type="file" id="fileUploader" accept=".xlsx, .xls" />
+      <button id="openUploadBtn" class="action-btn">
+        📂 Upload Game Files
+      </button>
+
+      <div id="tabsContainer" class="tabs-container"></div>
+    </div>
+
+    <div id="uploadModal" class="modal-hidden">
+      <div class="modal-content upload-modal-content">
+        <div class="upload-header">
+          <h2>Upload DP1 Files</h2>
+          <span class="close-upload">&times;</span>
+        </div>
+
+        <div id="fileRowContainer"></div>
+
+        <div class="upload-actions">
+          <button id="addFileRowBtn" class="secondary-btn">
+            + Add Another File
+          </button>
+          <button id="processFilesBtn" class="primary-btn">
+            Process Files
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="search-container">
