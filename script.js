@@ -1,7 +1,13 @@
 // --- Wait for the page to be fully loaded ---
 document.addEventListener("DOMContentLoaded", () => {
   // Get references to all THREE list elements
-  const fileUploader = document.getElementById("fileUploader");
+  // --- Upload Modal Elements ---
+  const openUploadBtn = document.getElementById("openUploadBtn");
+  const uploadModal = document.getElementById("uploadModal");
+  const closeUploadSpan = document.querySelector(".close-upload");
+  const fileRowContainer = document.getElementById("fileRowContainer");
+  const addFileRowBtn = document.getElementById("addFileRowBtn");
+  const processFilesBtn = document.getElementById("processFilesBtn");
   const criticalList = document.getElementById("criticalList");
   const belowList = document.getElementById("belowList");
   const aboveList = document.getElementById("aboveList");
@@ -24,8 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const compareContainer = document.getElementById("compareContainer");
   // --- End New Elements ---
 
-  let workbook = null; // This will store the loaded Excel file
-  let chartInstances = new Map(); // Replaces myTrendChart
+  // --- NEW: State Management ---
+  const DASHBOARD_STATE = {}; // Stores data for all uploaded games: { "DIQ-2": { ...data... } }
+  let activeGameKey = null; // Tracks which tab is currently open
+
+  let workbook = null;
+  let chartInstances = new Map();
 
   // --- Data for Single Modal ---
   let currentCountryData = null;
@@ -38,36 +48,125 @@ document.addEventListener("DOMContentLoaded", () => {
   let allCountriesData = new Map(); // Stores all country data for search
   let selectedCountriesForCompare = []; // Array to hold selected country names
 
-  // --- Listen for a file upload ---
-  fileUploader.addEventListener("change", (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  // --- UPLOAD MODAL LOGIC ---
 
-    // Clear compare mode data
-    allCountriesData.clear();
-    compareToggle.checked = false;
-    isCompareMode = false;
-    countrySearchInput.placeholder = "Search for a country...";
-    countrySearchInput.value = "";
+  // 1. Open Modal
+  openUploadBtn.addEventListener("click", () => {
+    uploadModal.style.display = "flex";
+    uploadModal.classList.remove("modal-hidden");
 
-    // Reset all three lists
-    criticalList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
-    belowList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
-    aboveList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
-    lowList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
-    moderateList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
-    goodList.innerHTML = '<p class="placeholder">Analyzing file...</p>';
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      workbook = XLSX.read(data, { type: "array" });
-
-      // Start the analysis
-      processBenchmarkSheet(file.name);
-    };
-    reader.readAsArrayBuffer(file);
+    // FORCE ADD ROW if empty
+    if (fileRowContainer.children.length === 0) {
+      addFileRow();
+    }
   });
+
+  // 2. Close Modal
+  closeUploadSpan.addEventListener("click", () => {
+    uploadModal.style.display = "none";
+    uploadModal.classList.add("modal-hidden");
+  });
+
+  // 3. Add New Row Function (Fixed for all environments)
+  addFileRowBtn.addEventListener("click", addFileRow);
+
+  function addFileRow() {
+    const rowCount = fileRowContainer.children.length + 1;
+    // Simple unique ID
+    const uniqueId =
+      "file-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
+
+    const div = document.createElement("div");
+    div.className = "file-row";
+
+    // REMOVED: The <input type="text"> line
+    div.innerHTML = `
+      <span class="row-number">${rowCount}.</span>
+      
+      <input type="file" id="${uniqueId}" class="game-file-input" accept=".xlsx, .xls">
+      
+      <label for="${uniqueId}" class="file-label">Browse...</label>
+      
+      <span class="file-name-display">No file selected</span>
+      
+      <button class="remove-row-btn" title="Remove">&times;</button>
+    `;
+
+    const fileInput = div.querySelector(".game-file-input");
+    const nameDisplay = div.querySelector(".file-name-display");
+    const removeBtn = div.querySelector(".remove-row-btn");
+
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        nameDisplay.textContent = e.target.files[0].name;
+        nameDisplay.style.color = "#333";
+        nameDisplay.style.fontStyle = "normal";
+      } else {
+        nameDisplay.textContent = "No file selected";
+      }
+    });
+
+    removeBtn.addEventListener("click", () => {
+      div.remove();
+      // Optional: re-number rows here if you want perfect ordering, but not critical
+    });
+
+    fileRowContainer.appendChild(div);
+  }
+
+  // --- INSERT THIS BLOCK AT LINE 108 (After addFileRow function) ---
+
+  // 4. Process Files Logic (Updated: Clears old data on every run)
+  processFilesBtn.addEventListener("click", () => {
+    const rows = fileRowContainer.querySelectorAll(".file-row");
+
+    // Step 1: Check if there are actually files to process
+    let filesFound = false;
+    rows.forEach((row) => {
+      if (row.querySelector(".game-file-input").files.length > 0)
+        filesFound = true;
+    });
+
+    if (!filesFound) {
+      alert("Please select at least one file to process.");
+      return;
+    }
+
+    // Step 2: CLEAR OLD DATA (The Fix)
+    // We empty the dashboard state so deleted games disappear
+    Object.keys(DASHBOARD_STATE).forEach((key) => delete DASHBOARD_STATE[key]);
+    activeGameKey = null;
+    renderTabs(); // This clears the old tabs immediately
+
+    // Step 3: Process the current files
+    rows.forEach((row) => {
+      const fileInput = row.querySelector(".game-file-input");
+      // REMOVED: const nameInput = row.querySelector(".custom-name-input");
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          const data = new Uint8Array(e.target.result);
+          const wb = XLSX.read(data, { type: "array" });
+
+          // CHANGED: Use file.name directly
+          const finalName = file.name;
+
+          processBenchmarkSheet(finalName, wb);
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+    });
+
+    // Step 4: Close modal
+    uploadModal.style.display = "none";
+    uploadModal.classList.add("modal-hidden");
+  });
+
+  // --- END INSERTION ---
   // --- Listen for Compare Toggle ---
   compareToggle.addEventListener("change", (event) => {
     isCompareMode = event.target.checked;
@@ -88,32 +187,82 @@ document.addEventListener("DOMContentLoaded", () => {
     filterCountries();
   });
 
-  // --- Function to process the 'BM' sheet ---
-  function processBenchmarkSheet(fileName) {
-    const bmSheetName = workbook.SheetNames.find(
+  // --- NEW: Render Tabs ---
+  function renderTabs() {
+    const container = document.getElementById("tabsContainer");
+    container.innerHTML = ""; // Clear existing tabs
+
+    Object.keys(DASHBOARD_STATE)
+      .sort()
+      .forEach((key) => {
+        const btn = document.createElement("button");
+        btn.className = `tab-button ${key === activeGameKey ? "active" : ""}`;
+        btn.textContent = key; // e.g., "DIQ-2"
+        btn.onclick = () => switchTab(key);
+        container.appendChild(btn);
+      });
+  }
+
+  // --- NEW: Switch Game Context ---
+  function switchTab(key) {
+    if (!DASHBOARD_STATE[key]) return;
+
+    activeGameKey = key;
+    const data = DASHBOARD_STATE[key];
+
+    // 1. Restore Global State for this game
+    // We update the helper map so search works for THIS game
+    allCountriesData = data.allCountriesMap;
+    // IMPORTANT: If your other functions rely on 'workbook', you might need to pass it
+    // or set a temporary global. For now, we update the module-level 'workbook' variable if you kept it,
+    // OR update your helper functions to accept 'workbook'.
+    // *Simplest Fix:* Update the global 'workbook' variable to match this tab:
+    workbook = data.workbook;
+
+    // 2. Update UI
+    mainTitle.innerHTML = `${data.title} <span style="font-size: 0.6em; color: #737373; vertical-align: middle;">(Last ${data.totalDays} Days)</span>`;
+    document.title = `AAPU Report | ${key}`;
+
+    // 3. Render Lists
+    displayCountryLists(data.critical, data.below, data.above);
+    displayAAPULists(data.low, data.moderate, data.good);
+
+    // 4. Update Tab Styles
+    renderTabs(); // Re-runs to highlight the active button
+
+    // 5. Reset Search & Compare
+    const searchInput = document.getElementById("countrySearch");
+    searchInput.value = "";
+    compareToggle.checked = false;
+    isCompareMode = false;
+    clearCompareSelections(); // Ensure this function exists from your previous code
+
+    // Filter to show all (since we cleared search)
+    filterCountries();
+  }
+
+  // --- Function to process the 'BM' sheet (FIXED: Silent Mode) ---
+  function processBenchmarkSheet(fileName, wb) {
+    const bmSheetName = wb.SheetNames.find(
       (name) => name.toUpperCase() === "BM"
     );
     if (!bmSheetName) {
-      criticalList.innerHTML =
-        '<p class="placeholder" style="color: red;">Error: "BM" sheet not found.</p>';
-      belowList.innerHTML =
-        '<p class="placeholder" style="color: red;">Error: "BM" sheet not found.</p>';
-      aboveList.innerHTML =
-        '<p class="placeholder" style="color: red;">Error: "BM" sheet not found.</p>';
+      alert(
+        `Error: The file "${fileName}" does not contain a "BM" sheet.\n\nPlease upload the processed "All Geo.xlsx" file, not the raw CSV.`
+      );
       return;
     }
 
-    const ws = workbook.Sheets[bmSheetName];
+    const ws = wb.Sheets[bmSheetName];
     const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
     const headers = data[0];
-    // FIXED: Latest date is now at Index 1 (Column B), not the end
     const latestDate = headers[1];
     const latestDateCol = 1;
-    const totalDays = headers.length - 1; // Total days is headers minus the 'Country' column
+    const totalDays = headers.length - 1;
 
     // --- Determine Game Name from Filename ---
-    let gameName = ""; // Default is empty (No name)
+    let gameName = "";
 
     if (fileName) {
       const upperName = fileName.toUpperCase();
@@ -126,9 +275,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // --- Update Title using Game Name and Date ---
-    mainTitle.innerHTML = `${gameName} AAPU Performance Dashboard of ${latestDate} <span style="font-size: 0.6em; color: #737373; vertical-align: middle;">(Last ${totalDays} Days)</span>`;
-    document.title = `AAPU Report | ${gameName} | ${latestDate}`; // Update browser tab too
+    // --- FIX 1: Create LOCAL Map (Don't use the global one yet) ---
+    const localCountriesMap = new Map();
 
     const criticalCountries = [];
     const belowCountries = [];
@@ -138,46 +286,30 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = data[i];
       if (!row || row.length === 0 || !row[0]) continue;
 
-      let country = row[0]; // <-- Declare and assign初步 here
+      let country = row[0];
 
       try {
-        // country = row[0]; // Assign inside try block - No longer needed here
         const latestValue = row[latestDateCol];
 
-        // *** ADD THIS BLOCK START ***
-        // Get installs from the latest sheet for this country
-        const latestSheetName = workbook.SheetNames.find((name) =>
+        const latestSheetName = wb.SheetNames.find((name) =>
           name.includes(String(latestDate))
         );
-        console.log(`Date: ${latestDate}, Found Sheet: ${latestSheetName}`);
-        // --- START: ADDED ERROR HANDLING ---
-        if (!latestSheetName) {
-          console.error(
-            `Error: Could not find data sheet including date "${latestDate}" for country "${country}". Skipping this country.`
-          );
-          continue; // Skip to the next country row
-        }
-        // --- END: ADDED ERROR HANDLING ---
+
+        if (!latestSheetName) continue;
+
         let userInstalls = 0;
         if (latestSheetName) {
-          const latestKPIs = getKPIsForCountry(latestSheetName, country); // Use helper
+          const latestKPIs = getKPIsForCountry(latestSheetName, country, wb);
           if (latestKPIs && latestKPIs["User Installed"] !== undefined) {
-            // Make sure installs is a number, handle potential 'NA' or errors
             userInstalls = Number(latestKPIs["User Installed"]) || 0;
           }
         }
 
-        console.log(`Country: ${country}, Installs: ${userInstalls}`);
-        // --- FILTER CONDITION ---
-        if (userInstalls <= 10) {
-          continue; // Skip this country if installs are 10 or less
-        }
-        // *** ADD THIS BLOCK END ***
+        if (userInstalls <= 10) continue;
 
         let benchmarkValue = -1.0;
         let benchmarkDate = "N_A";
 
-        // FIXED: Loop starts at 2 (past data) and goes to the end of the row
         for (let j = 2; j < headers.length; j++) {
           const currentValue = row[j];
           if (
@@ -216,13 +348,14 @@ document.addEventListener("DOMContentLoaded", () => {
             benchmarkDate: benchmarkDate,
             isCritical: diff >= 1.0,
             trendDates: trendDates,
-            trendValuesRaw: trendValuesRaw, // Use raw for calculation
-            trendValuesFormatted: trendValuesFormatted, // Use formatted for chart
-            totalDays: totalDays, // *** Pass total days ***
+            trendValuesRaw: trendValuesRaw,
+            trendValuesFormatted: trendValuesFormatted,
+            totalDays: totalDays,
             isNewBenchmark: isNewBenchmark,
           };
-          // --- Store in Map for search ---
-          allCountriesData.set(country.toLowerCase(), countryData);
+
+          // --- FIX 2: Use Local Map ---
+          localCountriesMap.set(country.toLowerCase(), countryData);
 
           if (latestValue < benchmarkValue) {
             if (countryData.isCritical) {
@@ -234,27 +367,43 @@ document.addEventListener("DOMContentLoaded", () => {
             aboveCountries.push(countryData);
           }
         }
-        // --- START: ADDED CATCH BLOCK ---
       } catch (error) {
-        console.error(
-          `Error processing country: ${country || "Unknown"} (Row ${i + 1})`,
-          error
-        );
-        // Optionally add this country to a list of errors to display later
+        console.error(`Error processing country: ${country}`, error);
       }
-      // --- END: ADDED CATCH BLOCK ---
-    } // This is the closing brace for the main 'for' loop
-    displayCountryLists(criticalCountries, belowCountries, aboveCountries);
-    // --- NEW AAPU LOGIC ---
+    }
+
+    // --- FIX 3: REMOVED ALL DIRECT DOM UPDATES (displayCountryLists, etc.) ---
+
     const low = [],
       moderate = [],
       good = [];
-    allCountriesData.forEach((c) => {
+    localCountriesMap.forEach((c) => {
       if (c.latestAAPU < 7) low.push(c);
       else if (c.latestAAPU <= 8) moderate.push(c);
       else good.push(c);
     });
-    displayAAPULists(low, moderate, good);
+
+    const key = gameName || fileName;
+
+    DASHBOARD_STATE[key] = {
+      workbook: wb,
+      title: `${gameName} AAPU Performance Dashboard of ${latestDate}`,
+      totalDays: totalDays,
+      critical: criticalCountries,
+      below: belowCountries,
+      above: aboveCountries,
+      low: low,
+      moderate: moderate,
+      good: good,
+      allCountriesMap: localCountriesMap, // Save the specific map
+    };
+
+    renderTabs();
+
+    // Only switch if this is the FIRST game loaded (avoids hijacking)
+    if (!activeGameKey) {
+      switchTab(key);
+    }
   }
 
   // --- Function to display THREE lists ---
@@ -512,8 +661,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Helper function to get KPIs ---
-  function getKPIsForCountry(sheetName, countryName) {
-    const ws = workbook.Sheets[sheetName];
+  function getKPIsForCountry(sheetName, countryName, wbOverride = null) {
+    // FIX: Use the override if provided, otherwise use global workbook
+    const currentWb = wbOverride || workbook;
+
+    if (!currentWb) return null; // Safety check
+
+    const ws = currentWb.Sheets[sheetName]; // Use currentWb
     if (!ws) return null;
 
     const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
@@ -1184,10 +1338,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return; // Skip to next country
       }
 
-      // --- Get KPI data for this country (logic from showWTHReport) ---
+      // --- Get KPI data for this country ---
+
+      // FIX: Changed 'wb' to 'workbook' (The global variable)
       const latestSheetName = workbook.SheetNames.find((name) =>
         name.includes(countryData.latestDate)
       );
+
       const benchmarkSheetName = workbook.SheetNames.find((name) =>
         name.includes(countryData.benchmarkDate)
       );
@@ -1212,7 +1369,6 @@ document.addEventListener("DOMContentLoaded", () => {
       compareContainer.appendChild(col);
 
       // Generate the report into this column
-      // We give it a unique ID 'compare1' or 'compare2'
       updateReportContent(
         col,
         countryData,
@@ -1266,5 +1422,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     });
+  }
+  for (let i = 0; i < 3; i++) {
+    addFileRow();
   }
 });
