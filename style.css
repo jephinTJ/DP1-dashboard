@@ -1,19 +1,25 @@
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+/* ISOLATION CONTAINER: Resets styles inside your tool */
+#dp1-dashboard-root {
+  all: initial; /* Strips away company site styles */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* Re-applies your font */
   background-color: #f4f7f6;
   color: #333;
-  margin: 0;
-  padding: 20px;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
 }
-header {
+#dp1-dashboard-root * {
+  box-sizing: border-box; /* Fixes layout width issues */
+}
+#dp1-dashboard-root header {
   text-align: center;
   border-bottom: 2px solid #ddd;
   padding-bottom: 20px;
 }
-header h1 {
+#dp1-dashboard-root header h1 {
   color: #2c3e50;
 }
-header pre {
+#dp1-dashboard-root header pre {
   display: inline; /* Keep this */
   background: #e0e0e0;
   padding: 2px 6px;
@@ -21,16 +27,16 @@ header pre {
   margin: 0; /* Add this to remove default margins */
   vertical-align: baseline; /* Add this to align better with text */
 }
-.upload-container {
+#dp1-dashboard-root .upload-container {
   text-align: center;
   margin: 20px 0;
 }
-#fileUploader {
+#dp1-dashboard-root #fileUploader {
   font-size: 1.1em;
 }
 
 /* --- New Search Bar Styles --- */
-.search-container {
+#dp1-dashboard-root .search-container {
   max-width: 1500px; /* Match the allResultsContainer width */
   margin: 0 auto 20px auto; /* Center it and add space below */
   display: flex; /* Use flex */
@@ -39,7 +45,7 @@ header pre {
   /* justify-content: flex-end; REMOVED */
 }
 /* Style for the new compare toggle container */
-.compare-toggle-container {
+#dp1-dashboard-root .compare-toggle-container {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -47,12 +53,12 @@ header pre {
   padding-right: 10px; /* <-- ADDED: Nudges toggle left */
 }
 
-.search-input-wrapper {
+#dp1-dashboard-root .search-input-wrapper {
   position: relative; /* For icon positioning */
   display: inline-block;
 }
 
-#countrySearch {
+#dp1-dashboard-root #countrySearch {
   padding: 8px 35px 8px 15px; /* Adjusted padding for new icon */
   font-size: 0.9em;
   border: 1px solid #ddd;
@@ -68,39 +74,39 @@ header pre {
 }
 
 /* Styles for side-by-side lists */
-#allResultsContainer {
+#dp1-dashboard-root #allResultsContainer {
   display: flex;
   justify-content: space-around;
   gap: 20px;
   max-width: 1500px; /* Increased width for 3 columns */
   margin: 0 auto;
 }
-.list-container {
+#dp1-dashboard-root .list-container {
   flex: 1; /* Each container takes up equal space */
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-.list-container h2 {
+#dp1-dashboard-root .list-container h2 {
   text-align: center;
   color: #2c3e50;
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
 }
-.country-list-wrapper {
+#dp1-dashboard-root .country-list-wrapper {
   padding: 10px;
   height: 400px; /* Fixed height for scrollable lists */
   overflow-y: auto;
 }
 /* End of new styles */
 
-.placeholder {
+#dp1-dashboard-root .placeholder {
   text-align: center;
   color: #777;
   font-style: italic;
   padding-top: 20px;
 }
-.country-item {
+#dp1-dashboard-root .country-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -109,42 +115,42 @@ header pre {
   cursor: pointer;
   transition: background-color 0.2s;
 }
-.country-item:last-child {
+#dp1-dashboard-root .country-item:last-child {
   border-bottom: none;
 }
-.country-item:hover {
+#dp1-dashboard-root .country-item:hover {
   background-color: #f9f9f9;
 }
 
 /* Red for 'down' and 'critical' countries */
-.country-item strong {
+#dp1-dashboard-root .country-item strong {
   font-size: 1.2em;
   color: #d9534f;
 }
 /* Green for 'up' countries */
-.country-item.above strong {
+#dp1-dashboard-root .country-item.above strong {
   color: #5cb85c;
 }
 
-.country-item span {
+#dp1-dashboard-root .country-item span {
   font-size: 1em;
   color: #333;
   font-weight: 600; /* Makes it semi-bold */
 }
-.country-item .critical-warn {
+#dp1-dashboard-root .country-item .critical-warn {
   /* This class is no longer used, but we can leave it */
   color: #d9534f;
   font-weight: bold;
   margin-right: 5px;
 }
 /* --- Style for selected country in compare mode --- */
-.country-item.selected-for-compare {
+#dp1-dashboard-root .country-item.selected-for-compare {
   background-color: #e0f2fe; /* Light blue background */
   font-weight: bold; /* Make text bold */
 }
 
 /* Optional: Add a checkmark (adjust positioning as needed) */
-.country-item.selected-for-compare::before {
+#dp1-dashboard-root .country-item.selected-for-compare::before {
   content: "✓"; /* Checkmark symbol */
   color: #0ea5e9; /* Blue color for checkmark */
   font-size: 1.2em;
@@ -152,11 +158,11 @@ header pre {
   font-weight: bold;
 }
 /* Make hiding rule more specific */
-#reportModal.modal-hidden,
-#comparisonModal.modal-hidden {
+#dp1-dashboard-root #reportModal.modal-hidden,
+#dp1-dashboard-root #comparisonModal.modal-hidden {
   display: none;
 }
-#reportModal {
+#dp1-dashboard-root #reportModal {
   position: fixed;
   z-index: 100;
   left: 0;
@@ -169,7 +175,7 @@ header pre {
   padding-top: 5vh; /* Adds some space from the top */
   justify-content: center;
 }
-.modal-content {
+#dp1-dashboard-root .dp1-modal-content {
   background-color: #fefefe;
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -181,14 +187,14 @@ header pre {
   cursor: default; /* <-- ADD THIS LINE */
 }
 /* --- START: Added Hover Cursor Change --- */
-#reportModal:hover,
-#comparisonModal:hover {
+#dp1-dashboard-root #reportModal:hover,
+#dp1-dashboard-root #comparisonModal:hover {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8l3.147 3.146a.5.5 0 0 1-.708.708L8 8.707l-3.146 3.147a.5.5 0 0 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z"/></svg>'),
     auto;
   /* Uses an embedded white 'X' SVG as the cursor */
 }
 /* --- END: Added Hover Cursor Change --- */
-#closeModalButton {
+#dp1-dashboard-root #closeModalButton {
   position: absolute;
   top: 10px;
   right: 20px;
@@ -199,11 +205,11 @@ header pre {
   background: none;
   cursor: pointer;
 }
-#closeModalButton:hover {
+#dp1-dashboard-root #closeModalButton:hover {
   color: #333;
 }
 /* WTH Report Styles */
-.wth-report h3 {
+#dp1-dashboard-root .wth-report h3 {
   color: #2c3e50;
   border-bottom: 1px solid #eee;
   padding-bottom: 5px;
@@ -211,14 +217,14 @@ header pre {
 }
 
 /* --- ADD THIS ENTIRE BLOCK --- */
-.wth-report strong {
+#dp1-dashboard-root .wth-report strong {
   color: #000;
 }
-.wth-report strong.down {
+#dp1-dashboard-root .wth-report strong.down {
   color: #d9534f;
   font-weight: bold;
 }
-.wth-report strong.up {
+#dp1-dashboard-root .wth-report strong.up {
   color: #5cb85c;
   font-weight: bold;
 }
@@ -234,7 +240,7 @@ header pre {
   }
 }
 /* NEW: Styles for ALL trend chart canvases */
-canvas[id^="trendChart-"] {
+#dp1-dashboard-root canvas[id^="trendChart-"] {
   /* Target canvas elements with ID starting with "trendChart-" */
   display: block; /* Helps prevent extra space below */
   box-sizing: border-box; /* Consistent sizing */
@@ -243,42 +249,42 @@ canvas[id^="trendChart-"] {
   margin-bottom: 20px; /* Keep the spacing */
 }
 /* NEW: Styles for two-column KPI layout */
-.kpi-columns {
+#dp1-dashboard-root .kpi-columns {
   display: flex;
   justify-content: space-between; /* Space out columns */
   gap: 20px; /* Add gap between columns */
   margin-bottom: 20px; /* Space below the columns */
 }
 
-.kpi-column {
+#dp1-dashboard-root .kpi-column {
   flex: 1; /* Each column takes half the space */
 }
 
-.kpi-column h4 {
+#dp1-dashboard-root .kpi-column h4 {
   margin-top: 0;
   color: #555;
   font-size: 1em;
   padding-bottom: 5px;
 }
 
-.kpi-column ul {
+#dp1-dashboard-root .kpi-column ul {
   list-style: none; /* Remove default bullets */
   padding: 0;
   margin: 0;
 }
 
-.kpi-column li {
+#dp1-dashboard-root .kpi-column li {
   margin-bottom: 8px; /* Space between KPI items */
   font-size: 0.95em;
 }
 
-code {
+#dp1-dashboard-root code {
   background-color: #f0f0f0; /* Light gray background */
   padding: 2px 6px; /* Adds a little space inside the box */
   border-radius: 4px; /* Rounds the corners */
   border: 1px solid #ddd; /* A light border, like in your first image */
 }
-.report-header {
+#dp1-dashboard-root .report-header {
   /* display: flex;  <-- REMOVE THIS */
   /* justify-content: space-between; <-- REMOVE THIS */
   /* align-items: center; <-- REMOVE THIS */
@@ -287,14 +293,14 @@ code {
   padding-bottom: 10px; /* Optional padding */
 }
 
-.report-header h2 {
+#dp1-dashboard-root .report-header h2 {
   margin: 10px 0 0 0;
   color: #2c3e50;
   font-size: 1.4em; /* Adjust title size if needed */
 }
 
 /* This styles the "Current AAPU: ..." line */
-.report-header .summary {
+#dp1-dashboard-root .report-header .summary {
   font-size: 1.25em; /* Makes it bigger */
   line-height: 1.6;
   margin-top: 15px; /* Adds space below the title */
@@ -302,23 +308,23 @@ code {
 }
 
 /* This styles the "Current AAPU:" bold text */
-.report-header .summary strong {
+#dp1-dashboard-root .report-header .summary strong {
   color: #000;
 }
 
 /* This styles the red "down" number */
-.report-header .summary .down {
+#dp1-dashboard-root .report-header .summary .down {
   color: #d9534f;
   font-weight: bold;
 }
 
 /* This styles the green "up" number */
-.report-header .summary .up {
+#dp1-dashboard-root .report-header .summary .up {
   color: #5cb85c;
   font-weight: bold;
 }
 
-.toggle-area {
+#dp1-dashboard-root .toggle-area {
   display: flex;
   align-items: center;
   justify-content: flex-end; /* <-- ADD THIS (pushes toggle to the right) */
@@ -326,7 +332,7 @@ code {
   margin-bottom: 15px; /* <-- ADD THIS (adds space below the toggle) */
 }
 
-.toggle-label-small {
+#dp1-dashboard-root .toggle-label-small {
   font-size: 0.8em; /* Smaller font for labels */
   color: #555;
   font-weight: 500;
@@ -334,13 +340,13 @@ code {
 }
 
 /* Style the active label (using ID now) */
-.toggle-label-small.active {
+#dp1-dashboard-root .toggle-label-small.active {
   color: #0b57d0; /* Blue color */
   font-weight: bold;
 }
 
 /* The SMALL switch - container */
-.switch-small {
+#dp1-dashboard-root .switch-small {
   position: relative;
   display: inline-block;
   width: 34px; /* Smaller width */
@@ -348,14 +354,14 @@ code {
 }
 
 /* Hide default HTML checkbox */
-.switch-small input {
+#dp1-dashboard-root .switch-small input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
 /* The SMALL slider track */
-.switch-small .slider {
+#dp1-dashboard-root .switch-small .slider {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -368,7 +374,7 @@ code {
 }
 
 /* The SMALL sliding circle */
-.switch-small .slider:before {
+#dp1-dashboard-root .switch-small .slider:before {
   position: absolute;
   content: "";
   height: 14px; /* Smaller circle */
@@ -381,12 +387,12 @@ code {
 }
 
 /* When checkbox is checked (ON state) */
-input:checked + .slider {
+#dp1-dashboard-root input:checked + .slider {
   background-color: #a8c7fa; /* Lighter blue track */
 }
 
 /* Move the SMALL circle when checked */
-input:checked + .slider:before {
+#dp1-dashboard-root input:checked + .slider:before {
   -webkit-transform: translateX(16px); /* Shorter distance */
   -ms-transform: translateX(16px);
   transform: translateX(16px);
@@ -394,27 +400,27 @@ input:checked + .slider:before {
 }
 
 /* Rounded sliders (same as before) */
-.switch-small .slider.round {
+#dp1-dashboard-root .switch-small .slider.round {
   border-radius: 18px; /* Make track rounded */
 }
 
-.switch-small .slider.round:before {
+#dp1-dashboard-root .switch-small .slider.round:before {
   border-radius: 50%; /* Make circle round */
 }
 
-#reportDetails {
+#dp1-dashboard-root #reportDetails {
   margin-top: 15px;
   opacity: 1;
   transition: opacity 0.25s ease-in-out; /* Increased duration */
 }
 
-#reportDetails.fading-out {
+#dp1-dashboard-root #reportDetails.fading-out {
   opacity: 0;
 }
 
 /* --- End New Toggle Styles --- */
 /* New rule for the wrapper */
-.report-subheader {
+#dp1-dashboard-root .report-subheader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -422,7 +428,7 @@ input:checked + .slider:before {
 }
 
 /* Remove margin from the H3 inside it AND copy old styles */
-.report-subheader h3 {
+#dp1-dashboard-root .report-subheader h3 {
   /* Copied from .wth-report h3 for visual consistency */
   color: #2c3e50;
   border-bottom: 1px solid #eee;
@@ -432,7 +438,7 @@ input:checked + .slider:before {
   margin: 0;
 }
 /* ADD THIS NEW RULE for the modal container */
-#comparisonModal {
+#dp1-dashboard-root #comparisonModal {
   position: fixed;
   z-index: 100; /* Ensure it's above other content */
   left: 0;
@@ -446,13 +452,13 @@ input:checked + .slider:before {
   justify-content: center; /* Center horizontally */
 }
 /* --- New Comparison Modal Styles --- */
-#comparisonModal .modal-content {
+#dp1-dashboard-root #comparisonModal .dp1-modal-content {
   max-width: 90vw; /* Make it very wide */
   min-height: 400px;
   cursor: default; /* <-- ADD THIS LINE */
 }
 
-#comparisonModal #closeCompareModalBtn {
+#dp1-dashboard-root #comparisonModal #closeCompareModalBtn {
   position: absolute;
   top: 10px;
   right: 20px;
@@ -463,16 +469,16 @@ input:checked + .slider:before {
   background: none;
   cursor: pointer;
 }
-#comparisonModal #closeCompareModalBtn:hover {
+#dp1-dashboard-root #comparisonModal #closeCompareModalBtn:hover {
   color: #333;
 }
 
-.comparison-container {
+#dp1-dashboard-root .comparison-container {
   display: flex;
   gap: 20px;
 }
 
-.compare-column {
+#dp1-dashboard-root .compare-column {
   flex: 1; /* Each column takes half the space */
   min-width: 0; /* Prevents flex overflow */
 }
@@ -480,87 +486,87 @@ input:checked + .slider:before {
 /* --- Re-apply report styles inside the compare modal --- */
 /* This ensures the reports look the same inside the new modal */
 
-.comparison-container .report-header {
+#dp1-dashboard-root .comparison-container .report-header {
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
   margin-bottom: 10px;
 }
-.comparison-container .report-header h2 {
+#dp1-dashboard-root .comparison-container .report-header h2 {
   margin: 10px 0 0 0;
   color: #2c3e50;
   font-size: 1.4em;
 }
-.comparison-container .report-header .summary {
+#dp1-dashboard-root .comparison-container .report-header .summary {
   font-size: 1.25em;
   line-height: 1.6;
   margin-top: 15px;
   margin-bottom: 10px;
 }
-.comparison-container .report-header .summary strong {
+#dp1-dashboard-root .comparison-container .report-header .summary strong {
   color: #000;
 }
-.comparison-container .report-header .summary .down {
+#dp1-dashboard-root .comparison-container .report-header .summary .down {
   color: #d9534f;
   font-weight: bold;
 }
-.comparison-container .report-header .summary .up {
+#dp1-dashboard-root .comparison-container .report-header .summary .up {
   color: #5cb85c;
   font-weight: bold;
 }
-.comparison-container .report-subheader {
+#dp1-dashboard-root .comparison-container .report-subheader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 }
-.comparison-container .report-subheader h3 {
+#dp1-dashboard-root .comparison-container .report-subheader h3 {
   color: #2c3e50;
   border-bottom: 1px solid #eee;
   padding-bottom: 5px;
   margin: 0;
 }
-.comparison-container .kpi-columns {
+#dp1-dashboard-root .comparison-container .kpi-columns {
   display: flex;
   justify-content: space-between;
   gap: 20px;
   margin-bottom: 20px;
 }
-.comparison-container .kpi-column {
+#dp1-dashboard-root .comparison-container .kpi-column {
   flex: 1;
 }
-.comparison-container .kpi-column h4 {
+#dp1-dashboard-root .comparison-container .kpi-column h4 {
   margin-top: 0;
   color: #555;
   font-size: 1em;
   padding-bottom: 5px;
 }
-.comparison-container .kpi-column ul {
+#dp1-dashboard-root .comparison-container .kpi-column ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-.comparison-container .kpi-column li {
+#dp1-dashboard-root .comparison-container .kpi-column li {
   margin-bottom: 8px;
   font-size: 0.95em;
 }
-.comparison-container .kpi-column strong {
+#dp1-dashboard-root .comparison-container .kpi-column strong {
   font-weight: bold;
   color: #000;
 }
-.comparison-container .kpi-column strong.down {
+#dp1-dashboard-root .comparison-container .kpi-column strong.down {
   color: #d9534f;
 }
-.comparison-container .kpi-column strong.up {
+#dp1-dashboard-root .comparison-container .kpi-column strong.up {
   color: #5cb85c;
 }
-.comparison-container .wth-report h3 {
+#dp1-dashboard-root .comparison-container .wth-report h3 {
   color: #2c3e50;
   border-bottom: 1px solid #eee;
   padding-bottom: 5px;
   white-space: nowrap;
 }
 /* --- Multi-Game Tab Styles --- */
-.tabs-container {
+#dp1-dashboard-root .tabs-container {
   display: flex;
   justify-content: center;
   gap: 10px;
@@ -568,7 +574,7 @@ input:checked + .slider:before {
   flex-wrap: wrap;
 }
 
-.tab-button {
+#dp1-dashboard-root .tab-button {
   padding: 8px 20px;
   background-color: #e0e0e0; /* Gray for inactive */
   border: none;
@@ -581,19 +587,30 @@ input:checked + .slider:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.tab-button:hover {
+#dp1-dashboard-root .tab-button:hover {
   background-color: #d5d5d5;
   transform: translateY(-1px);
 }
 
-.tab-button.active {
+#dp1-dashboard-root .tab-button.active {
   background-color: #0b57d0; /* Blue for active */
   color: white;
   box-shadow: 0 4px 8px rgba(11, 87, 208, 0.3);
 }
+/* FIXED: Forces rounded corners and thin border */
+#dp1-dashboard-root .action-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #fff !important; /* Force white background */
+  border: 1px solid #ccc !important; /* Force thin grey border */
+  border-radius: 6px !important; /* Force rounded corners */
+  color: #333 !important; /* Force dark text */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 /* --- Upload Modal Styles (ROAS Style) --- */
 /* The Modal Background */
-#uploadModal {
+#dp1-dashboard-root #uploadModal {
   position: fixed;
   z-index: 1000;
   left: 0;
@@ -607,21 +624,33 @@ input:checked + .slider:before {
   justify-content: center; /* Horizontal center */
 }
 
+/* Adds the 'X' cursor when hovering the dark background */
+#dp1-dashboard-root #uploadModal:hover,
+#dp1-dashboard-root #reportModal:hover,
+#dp1-dashboard-root #comparisonModal:hover {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8l3.147 3.146a.5.5 0 0 1-.708.708L8 8.707l-3.146 3.147a.5.5 0 0 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z"/></svg>'),
+    auto;
+}
+
 /* --- REPLACE THIS BLOCK IN style.css --- */
 
-.upload-modal-content {
+/* Fix Width of Upload Box */
+#dp1-dashboard-root .upload-modal-content {
   background-color: #fefefe;
   padding: 25px 30px;
   border-radius: 8px;
-  width: 90%;
-  max-width: 350px; /* <--- CHANGED from 650px to 450px */
+
+  /* THIS IS THE KEY FIX: */
+  width: 100%;
+  max-width: 400px !important; /* Force it to be small/compact */
+
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease-out;
   position: relative;
   margin: 0;
 }
 
-.upload-header {
+#dp1-dashboard-root .upload-header {
   display: flex;
   justify-content: center; /* <--- CHANGED: Centers the title */
   align-items: center;
@@ -631,13 +660,13 @@ input:checked + .slider:before {
   position: relative; /* <--- ADDED: Anchors the close button */
 }
 
-.upload-header h2 {
+#dp1-dashboard-root .upload-header h2 {
   margin: 0;
   color: #2c3e50;
   font-size: 1.5em;
 }
 
-.close-upload {
+#dp1-dashboard-root .close-upload {
   color: #aaa;
   font-size: 28px;
   font-weight: bold;
@@ -647,18 +676,18 @@ input:checked + .slider:before {
   right: 0; /* <--- ADDED: Sticks it to the right */
 }
 
-.close-upload:hover {
+#dp1-dashboard-root .close-upload:hover {
   color: #333;
 }
 
 /* --- Complex File Row Styles --- */
-#fileRowContainer {
+#dp1-dashboard-root #fileRowContainer {
   max-height: 350px;
   overflow-y: auto;
   padding-right: 5px;
 }
 
-.file-row {
+#dp1-dashboard-root .file-row {
   display: flex;
   gap: 10px;
   align-items: center;
@@ -666,7 +695,7 @@ input:checked + .slider:before {
   justify-content: center; /* <--- ADDED: Centers the file inputs */
 }
 
-.row-number {
+#dp1-dashboard-root .row-number {
   font-weight: 600;
   color: #555;
   width: 20px;
@@ -674,7 +703,7 @@ input:checked + .slider:before {
 }
 
 /* Text Input for Name */
-.file-row input[type="text"] {
+#dp1-dashboard-root .file-row input[type="text"] {
   flex-grow: 1;
   padding: 10px;
   border: 1px solid #ddd;
@@ -683,7 +712,7 @@ input:checked + .slider:before {
 }
 
 /* Hide the ugly default file input */
-.file-row input[type="file"] {
+#dp1-dashboard-root .file-row input[type="file"] {
   width: 0.1px;
   height: 0.1px;
   opacity: 0;
@@ -693,7 +722,7 @@ input:checked + .slider:before {
 }
 
 /* Styled "Browse" Button Label */
-.file-row .file-label {
+#dp1-dashboard-root .file-row .file-label {
   padding: 10px 15px;
   background-color: #f9f9f9;
   border: 1px solid #ddd;
@@ -704,12 +733,12 @@ input:checked + .slider:before {
   color: #333;
 }
 
-.file-row .file-label:hover {
+#dp1-dashboard-root .file-row .file-label:hover {
   background-color: #f0f0f0;
 }
 
 /* Filename Display */
-.file-row .file-name-display {
+#dp1-dashboard-root .file-row .file-name-display {
   /* <-- FIXED CLASS NAME */
   font-size: 0.9em;
   color: #555;
@@ -721,7 +750,7 @@ input:checked + .slider:before {
 }
 
 /* Remove Button */
-.remove-row-btn {
+#dp1-dashboard-root .remove-row-btn {
   background: #fff;
   border: 1px solid #ddd;
   color: #999;
@@ -736,21 +765,34 @@ input:checked + .slider:before {
   font-size: 16px;
 }
 
-.remove-row-btn:hover {
+#dp1-dashboard-root .remove-row-btn:hover {
   border-color: #e74c3c;
   color: #e74c3c;
 }
 
-/* Footer Buttons */
-.upload-actions {
+/* Fix Button Spacing - COMPACT VERSION */
+#dp1-dashboard-root .upload-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Centers the buttons */
+  align-items: center;
   margin-top: 25px;
   border-top: 1px solid #eee;
   padding-top: 20px;
+  gap: 20px; /* Adds space between the two buttons */
 }
 
-.primary-btn {
+/* Make buttons compact (Auto width) */
+#dp1-dashboard-root .primary-btn,
+#dp1-dashboard-root .secondary-btn {
+  flex: 0 0 auto; /* DISKABLE STRETCHING */
+  width: auto; /* Use natural width based on text */
+  min-width: 130px; /* Keeps them from looking too tiny */
+  text-align: center;
+  padding: 10px 20px;
+  font-size: 0.9em;
+}
+
+#dp1-dashboard-root .primary-btn {
   background-color: #2c3e50;
   color: white;
   padding: 12px 24px;
@@ -761,11 +803,11 @@ input:checked + .slider:before {
   font-weight: 600;
 }
 
-.primary-btn:hover {
+#dp1-dashboard-root .primary-btn:hover {
   background-color: #34495e;
 }
 
-.secondary-btn {
+#dp1-dashboard-root .secondary-btn {
   background-color: #ecf0f1;
   color: #2c3e50;
   padding: 10px 20px;
@@ -775,7 +817,7 @@ input:checked + .slider:before {
   font-weight: 500;
 }
 
-.secondary-btn:hover {
+#dp1-dashboard-root .secondary-btn:hover {
   background-color: #dde1e2;
 }
 
@@ -788,4 +830,24 @@ input:checked + .slider:before {
     transform: translateY(0);
     opacity: 1;
   }
+}
+/* FORCE COMPARE MODAL WIDER */
+#dp1-dashboard-root #comparisonModal .dp1-modal-content {
+  width: 95vw !important; /* Forces 95% of screen width */
+  max-width: 1600px !important; /* Prevents it from getting absurdly wide on huge monitors */
+  max-height: 90vh; /* Keeps it within vertical view */
+  overflow-y: auto; /* Scroll if needed */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure columns share space equally */
+#dp1-dashboard-root .comparison-container .compare-column {
+  flex: 1;
+  min-width: 400px; /* Minimum width before scrolling */
+  padding: 0 15px;
+  border-right: 1px solid #eee; /* Optional: adds line between countries */
+}
+#dp1-dashboard-root .comparison-container .compare-column:last-child {
+  border-right: none;
 }
