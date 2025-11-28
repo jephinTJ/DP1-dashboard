@@ -626,7 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // *** NEW: Update the static summary in the header ***
     const summaryP = document.querySelector(
-      ".modal-content .report-header p.summary"
+      ".dp1-modal-content .report-header p.summary"
     );
     if (summaryP) {
       const isDown =
@@ -1426,4 +1426,13 @@ document.addEventListener("DOMContentLoaded", () => {
   for (let i = 0; i < 3; i++) {
     addFileRow();
   }
+  // --- FIX: Close Upload Modal on Background Click ---
+  uploadModal.addEventListener("click", (event) => {
+    // If the user clicks the dark background (the modal itself), close it
+    // But if they click the white box (uploadModal.children[0]), do nothing
+    if (event.target === uploadModal) {
+      uploadModal.style.display = "none";
+      uploadModal.classList.add("modal-hidden");
+    }
+  });
 });
