@@ -9,128 +9,128 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
-    <header>
-      <h1 id="mainTitle">AAPU Performance Dashboard</h1>
-    </header>
+    <div id="dp1-dashboard-root">
+      <header>
+        <h1 id="mainTitle">AAPU Performance Dashboard</h1>
+      </header>
 
-    <div class="upload-container">
-      <button id="openUploadBtn" class="action-btn">
-        📂 Upload Game Files
-      </button>
+      <div class="upload-container">
+        <button id="openUploadBtn" class="action-btn">
+          📂 Upload Game Files
+        </button>
 
-      <div id="tabsContainer" class="tabs-container"></div>
-    </div>
-
-    <div id="uploadModal" class="modal-hidden">
-      <div class="modal-content upload-modal-content">
-        <div class="upload-header">
-          <h2>Upload DP1 Files</h2>
-          <span class="close-upload">&times;</span>
-        </div>
-
-        <div id="fileRowContainer"></div>
-
-        <div class="upload-actions">
-          <button id="addFileRowBtn" class="secondary-btn">
-            + Add Another File
-          </button>
-          <button id="processFilesBtn" class="primary-btn">
-            Process Files
-          </button>
-        </div>
+        <div id="tabsContainer" class="tabs-container"></div>
       </div>
-    </div>
 
-    <div class="search-container">
-      <div class="compare-toggle-container">
-        <span class="toggle-label-small">Compare mode</span>
-        <label class="switch switch-small">
-          <input type="checkbox" id="compareToggle" />
-          <span class="slider round"></span>
-        </label>
-      </div>
-      <div class="search-input-wrapper">
-        <input
-          type="text"
-          id="countrySearch"
-          placeholder="Search for a country..."
-        />
-      </div>
-    </div>
+      <div id="uploadModal" class="modal-hidden">
+        <div class="dp1-modal-content upload-modal-content">
+          <div class="upload-header">
+            <h2>Upload DP1 Files</h2>
+            <span class="close-upload">&times;</span>
+          </div>
 
-    <div id="allResultsContainer">
-      <div class="list-container" id="criticalContainer">
-        <h2>Critical ⚠️</h2>
-        <div id="criticalList" class="country-list-wrapper">
-          <p class="placeholder">Upload a file to begin analysis...</p>
+          <div id="fileRowContainer"></div>
+
+          <div class="upload-actions">
+            <button id="addFileRowBtn" class="secondary-btn">
+              + Add Another File
+            </button>
+            <button id="processFilesBtn" class="primary-btn">
+              Process Files
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="list-container" id="belowBenchmarkContainer">
-        <h2>Below Benchmark</h2>
-        <div id="belowList" class="country-list-wrapper">
-          <p class="placeholder">Upload a file to begin analysis...</p>
+      <div class="search-container">
+        <div class="compare-toggle-container">
+          <span class="toggle-label-small">Compare mode</span>
+          <label class="switch switch-small">
+            <input type="checkbox" id="compareToggle" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            id="countrySearch"
+            placeholder="Search for a country..."
+          />
         </div>
       </div>
 
-      <div class="list-container" id="aboveBenchmarkContainer">
-        <h2>Above Benchmark</h2>
-        <div id="aboveList" class="country-list-wrapper">
-          <p class="placeholder">Upload a file to begin analysis...</p>
+      <div id="allResultsContainer">
+        <div class="list-container" id="criticalContainer">
+          <h2>Critical ⚠️</h2>
+          <div id="criticalList" class="country-list-wrapper">
+            <p class="placeholder">Upload a file to begin analysis...</p>
+          </div>
         </div>
-      </div>
-    </div>
-    <div
-      id="aapuResultsContainer"
-      class="results-container"
-      style="
-        display: flex;
-        justify-content: space-around;
-        gap: 20px;
-        max-width: 1500px;
-        margin: 20px auto;
-      "
-    >
-      <div class="list-container" style="background-color: #fff8f8">
-        <h2>Low AAPU (<7)</h2>
-        <div id="lowList" class="country-list-wrapper">
-          <p class="placeholder">Waiting for file...</p>
+
+        <div class="list-container" id="belowBenchmarkContainer">
+          <h2>Below Benchmark</h2>
+          <div id="belowList" class="country-list-wrapper">
+            <p class="placeholder">Upload a file to begin analysis...</p>
+          </div>
+        </div>
+
+        <div class="list-container" id="aboveBenchmarkContainer">
+          <h2>Above Benchmark</h2>
+          <div id="aboveList" class="country-list-wrapper">
+            <p class="placeholder">Upload a file to begin analysis...</p>
+          </div>
         </div>
       </div>
 
-      <div class="list-container" style="background-color: #fcfbf1">
-        <h2>Moderate AAPU (7-8)</h2>
-        <div id="moderateList" class="country-list-wrapper">
-          <p class="placeholder">Waiting for file...</p>
+      <div
+        id="aapuResultsContainer"
+        class="results-container"
+        style="
+          display: flex;
+          justify-content: space-around;
+          gap: 20px;
+          max-width: 1500px;
+          margin: 20px auto;
+        "
+      >
+        <div class="list-container" style="background-color: #fff8f8">
+          <h2>Low AAPU (<7)</h2>
+          <div id="lowList" class="country-list-wrapper">
+            <p class="placeholder">Waiting for file...</p>
+          </div>
+        </div>
+
+        <div class="list-container" style="background-color: #fcfbf1">
+          <h2>Moderate AAPU (7-8)</h2>
+          <div id="moderateList" class="country-list-wrapper">
+            <p class="placeholder">Waiting for file...</p>
+          </div>
+        </div>
+
+        <div class="list-container" style="background-color: #f1f8ee">
+          <h2>Good AAPU (>8)</h2>
+          <div id="goodList" class="country-list-wrapper">
+            <p class="placeholder">Waiting for file...</p>
+          </div>
         </div>
       </div>
 
-      <div class="list-container" style="background-color: #f1f8ee">
-        <h2>Good AAPU (>8)</h2>
-        <div id="goodList" class="country-list-wrapper">
-          <p class="placeholder">Waiting for file...</p>
+      <div id="reportModal" class="modal-hidden">
+        <div class="dp1-modal-content">
+          <button id="closeModalButton">&times;</button>
+          <div class="report-header">
+            <h2>Country Performance: <span id="reportCountryName"></span></h2>
+            <p class="summary"></p>
+          </div>
+          <div id="reportDetails"></div>
         </div>
       </div>
-    </div>
 
-    <div id="reportModal" class="modal-hidden">
-      <div class="modal-content">
-        <button id="closeModalButton">&times;</button>
-
-        <div class="report-header">
-          <h2>Country Performance: <span id="reportCountryName"></span></h2>
-          <p class="summary"></p>
+      <div id="comparisonModal" class="modal-hidden">
+        <div class="dp1-modal-content">
+          <button id="closeCompareModalBtn">&times;</button>
+          <div class="comparison-container" id="compareContainer"></div>
         </div>
-
-        <div id="reportDetails">
-          {/* Report details will be injected here by JS */}
-        </div>
-      </div>
-    </div>
-    <div id="comparisonModal" class="modal-hidden">
-      <div class="modal-content">
-        <button id="closeCompareModalBtn">&times;</button>
-        <div class="comparison-container" id="compareContainer"></div>
       </div>
     </div>
     <script src="script.js"></script>
