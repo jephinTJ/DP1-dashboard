@@ -268,6 +268,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const upperName = fileName.toUpperCase();
       if (upperName.includes("DIQ-1")) {
         gameName = "DIQ-1";
+      } else if (upperName.includes("IOS")) {
+        gameName = "DIQ-2 iOS";
       } else if (upperName.includes("DIQ-2")) {
         gameName = "DIQ-2";
       } else if (upperName.includes("DIQ-3")) {
