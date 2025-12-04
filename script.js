@@ -68,50 +68,152 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 3. Add New Row Function (Fixed for all environments)
-  addFileRowBtn.addEventListener("click", addFileRow);
+  addFileRowBtn.addEventListener("click", () => addFileRow());
 
-  function addFileRow() {
+  // Helper: Checks if ANY file exists (Robust Version)
+  function checkButtonState() {
+    const rows = fileRowContainer.querySelectorAll(".file-row");
+    let hasFiles = false;
+
+    rows.forEach((row) => {
+      // Check 1: Our custom property (Multi-select)
+      if (row.customFile) hasFiles = true;
+      // Check 2: The native input (Single select fallback)
+      const input = row.querySelector("input");
+      if (input && input.files && input.files.length > 0) hasFiles = true;
+    });
+
+    if (hasFiles) {
+      processFilesBtn.classList.add("btn-success");
+      // Optional: processFilesBtn.textContent = "Process Files ✅";
+    } else {
+      processFilesBtn.classList.remove("btn-success");
+    }
+  }
+
+  // Updated: Clean UI (Hides Browse on select), Handles Duplicates
+  function addFileRow(autoFile = null) {
     const rowCount = fileRowContainer.children.length + 1;
-    // Simple unique ID
     const uniqueId =
       "file-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
 
     const div = document.createElement("div");
     div.className = "file-row";
 
-    // REMOVED: The <input type="text"> line
+    if (autoFile) div.customFile = autoFile;
+
+    // Ultra-short text to fit in small boxes
+    const placeholderText = "Select File (Multiple OK)";
+
     div.innerHTML = `
       <span class="row-number">${rowCount}.</span>
-      
-      <input type="file" id="${uniqueId}" class="game-file-input" accept=".xlsx, .xls">
-      
+      <input type="file" id="${uniqueId}" class="game-file-input" accept=".xlsx, .xls" multiple>
       <label for="${uniqueId}" class="file-label">Browse...</label>
-      
-      <span class="file-name-display">No file selected</span>
-      
+      <span class="file-name-display">${
+        autoFile ? autoFile.name : placeholderText
+      }</span>
       <button class="remove-row-btn" title="Remove">&times;</button>
     `;
 
-    const fileInput = div.querySelector(".game-file-input");
     const nameDisplay = div.querySelector(".file-name-display");
+    const fileInput = div.querySelector(".game-file-input");
+    const fileLabel = div.querySelector(".file-label"); // Reference to the button
     const removeBtn = div.querySelector(".remove-row-btn");
 
-    fileInput.addEventListener("change", (e) => {
-      if (e.target.files.length > 0) {
-        nameDisplay.textContent = e.target.files[0].name;
-        nameDisplay.style.color = "#333";
-        nameDisplay.style.fontStyle = "normal";
+    // --- VIEW LOGIC: Hide Browse button & Box the Text ---
+    const updateViewState = (hasFile) => {
+      if (hasFile) {
+        fileLabel.style.display = "none"; // Hide the button
+        nameDisplay.classList.add("file-filled"); // Add the "Box" style
+        // Reset manual styles just in case
+        nameDisplay.style.color = "";
+        nameDisplay.style.fontStyle = "";
       } else {
-        nameDisplay.textContent = "No file selected";
+        fileLabel.style.display = "block"; // Show the button
+        nameDisplay.classList.remove("file-filled"); // Remove "Box" style
+        // Apply placeholder styles
+        nameDisplay.style.color = "#999";
+        nameDisplay.style.fontStyle = "italic";
+      }
+    };
+
+    // Initial State Check
+    if (autoFile) {
+      updateViewState(true);
+      checkButtonState(); // Update button color
+    } else {
+      updateViewState(false);
+    }
+
+    checkButtonState(); // Check button color on init
+
+    fileInput.addEventListener("change", (e) => {
+      const rawFiles = Array.from(e.target.files);
+
+      // 1. Gather existing files to check duplicates
+      const existingNames = new Set(
+        Array.from(fileRowContainer.querySelectorAll(".file-row"))
+          .filter((row) => row.customFile)
+          .map((row) => row.customFile.name)
+      );
+
+      // 2. Filter duplicates
+      const validFiles = rawFiles.filter((file) => {
+        if (existingNames.has(file.name)) {
+          console.log(`Duplicate ignored: ${file.name}`);
+          return false;
+        }
+        return true;
+      });
+
+      if (validFiles.length === 0 && rawFiles.length > 0) {
+        alert("Skipped duplicate files.");
+        fileInput.value = "";
+        checkButtonState(); // Re-check
+        return;
+      }
+
+      if (validFiles.length > 0) {
+        // A. Fill THIS row
+        const firstFile = validFiles[0];
+        div.customFile = firstFile;
+        nameDisplay.textContent = firstFile.name;
+
+        // Update UI to clean mode
+        updateViewState(true);
+
+        // FORCE BUTTON CHECK NOW
+        setTimeout(checkButtonState, 0);
+
+        // B. Spawn new rows for extra files
+        if (validFiles.length > 1) {
+          const remainingFiles = validFiles.slice(1);
+          remainingFiles.forEach((file) => addFileRow(file));
+        }
+      } else {
+        // C. User cancelled
+        nameDisplay.textContent = placeholderText;
+        div.customFile = null;
+        updateViewState(false);
+        checkButtonState(); // Re-check
       }
     });
 
     removeBtn.addEventListener("click", () => {
       div.remove();
-      // Optional: re-number rows here if you want perfect ordering, but not critical
+      updateRowNumbers();
+      checkButtonState();
     });
 
     fileRowContainer.appendChild(div);
+  }
+
+  // Helper to re-number rows nicely
+  function updateRowNumbers() {
+    const rows = fileRowContainer.querySelectorAll(".file-row");
+    rows.forEach((row, index) => {
+      row.querySelector(".row-number").textContent = index + 1 + ".";
+    });
   }
 
   // --- INSERT THIS BLOCK AT LINE 108 (After addFileRow function) ---
@@ -141,23 +243,27 @@ document.addEventListener("DOMContentLoaded", () => {
     // Step 3: Process the current files
     rows.forEach((row) => {
       const fileInput = row.querySelector(".game-file-input");
-      // REMOVED: const nameInput = row.querySelector(".custom-name-input");
 
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
+      // PRIORITY: Check if we have a stored file (from multi-select spillover)
+      // Fallback: Check the input field (standard single select)
+      let fileToProcess = row.customFile;
+
+      if (!fileToProcess && fileInput.files.length > 0) {
+        fileToProcess = fileInput.files[0];
+      }
+
+      if (fileToProcess) {
         const reader = new FileReader();
 
         reader.onload = (e) => {
           const data = new Uint8Array(e.target.result);
           const wb = XLSX.read(data, { type: "array" });
 
-          // CHANGED: Use file.name directly
-          const finalName = file.name;
-
-          processBenchmarkSheet(finalName, wb);
+          // Use the name from the file object
+          processBenchmarkSheet(fileToProcess.name, wb);
         };
 
-        reader.readAsArrayBuffer(file);
+        reader.readAsArrayBuffer(fileToProcess);
       }
     });
 
@@ -1425,9 +1531,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  for (let i = 0; i < 3; i++) {
-    addFileRow();
-  }
+  addFileRow();
   // --- FIX: Close Upload Modal on Background Click ---
   uploadModal.addEventListener("click", (event) => {
     // If the user clicks the dark background (the modal itself), close it
