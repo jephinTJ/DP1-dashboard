@@ -723,7 +723,7 @@
 
 /* Styled "Browse" Button Label */
 #dp1-dashboard-root .file-row .file-label {
-  padding: 10px 15px;
+  padding: 8px 12px; /* Reduced padding to prevent text cutoff */
   background-color: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -737,16 +737,43 @@
   background-color: #f0f0f0;
 }
 
-/* Filename Display */
+/* Filename Display - Default State (Placeholder) */
 #dp1-dashboard-root .file-row .file-name-display {
-  /* <-- FIXED CLASS NAME */
-  font-size: 0.9em;
-  color: #555;
-  font-style: italic;
-  max-width: 150px;
+  font-size: 0.8em; /* Smaller font to fit text */
+  color: #999;
+  flex-grow: 1;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible; /* Allow text to be seen */
+  min-width: 0;
+  padding-left: 8px;
+  margin-top: 0;
+  font-style: italic;
+  line-height: 1.2; /* Tighter line height */
+}
+
+/* Filename Display - "Boxed" State (When file is selected) */
+#dp1-dashboard-root .file-row .file-name-display.file-filled {
+  background-color: #f0f7ff;
+  border: 1px solid #cce5ff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #0056b3;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 0.95em;
+  margin-left: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+/* Success State (Green) - FORCED */
+#dp1-dashboard-root .primary-btn.btn-success {
+  background-color: #27ae60 !important;
+  border-color: #27ae60 !important;
+  color: white !important;
+}
+
+#dp1-dashboard-root .primary-btn.btn-success:hover {
+  background-color: #219150 !important;
 }
 
 /* Remove Button */
@@ -805,6 +832,16 @@
 
 #dp1-dashboard-root .primary-btn:hover {
   background-color: #34495e;
+}
+/* Success State (Green) */
+#dp1-dashboard-root .primary-btn.btn-success {
+  background-color: #27ae60;
+  border-color: #27ae60;
+  transition: background-color 0.3s ease;
+}
+
+#dp1-dashboard-root .primary-btn.btn-success:hover {
+  background-color: #219150;
 }
 
 #dp1-dashboard-root .secondary-btn {
