@@ -406,10 +406,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!latestSheetName) continue;
 
         let userInstalls = 0;
+        let onboardUsers = 0;
         if (latestSheetName) {
           const latestKPIs = getKPIsForCountry(latestSheetName, country, wb);
-          if (latestKPIs && latestKPIs["User Installed"] !== undefined) {
+          if (latestKPIs) {
             userInstalls = Number(latestKPIs["User Installed"]) || 0;
+            onboardUsers = Number(latestKPIs["Users Onboarded"]) || 0;
           }
         }
 
@@ -460,6 +462,8 @@ document.addEventListener("DOMContentLoaded", () => {
             trendValuesFormatted: trendValuesFormatted,
             totalDays: totalDays,
             isNewBenchmark: isNewBenchmark,
+            userInstalls: userInstalls,
+            onboardUsers: onboardUsers,
           };
 
           // --- FIX 2: Use Local Map ---
@@ -730,7 +734,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentBenchmarkKPIs = benchmarkKPIs;
 
     // --- 3. Set Defaults and Initial Display ---
-    reportCountryNameSpan.textContent = country.name; // Set country name in header
+    //reportCountryNameSpan.textContent = country.name; // Set country name in header
 
     // *** NEW: Update the static summary in the header ***
     const summaryP = document.querySelector(
@@ -1188,6 +1192,15 @@ document.addEventListener("DOMContentLoaded", () => {
       reportId // Pass the ID
     );
 
+    const userCountHTML = useVsOnboard
+      ? `<small style="font-weight: normal; font-size: 0.7em; color: #666;"> (onboard: ${country.onboardUsers})</small>`
+      : `<small style="font-weight: normal; font-size: 0.7em; color: #666;"> (install: ${country.userInstalls})</small>`;
+
+    if (reportId === "main") {
+      const nameSpan = document.getElementById("reportCountryName");
+      if (nameSpan) nameSpan.innerHTML = `${country.name}${userCountHTML}`;
+    }
+
     // Assemble the final HTML for the details section
     // We build the string in parts, starting with the header
     // Assemble the final HTML for the details section
@@ -1206,7 +1219,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       finalDetailsHTML += `
         <div class="report-header">
-            <h2>Country Performance: ${country.name}</h2>
+            <h2>Country Performance: ${country.name}${userCountHTML}</h2>
             <p class="summary">
               <strong>Current AAPU: <span class="${statusClass}">${country.latestAAPU.toFixed(
         2
