@@ -94,7 +94,7 @@
         "
       >
         <div class="list-container" style="background-color: #fff8f8">
-          <h2>Low AAPU (<7)</h2>
+          <h2>Low AAPU (&lt;7)</h2>
           <div id="lowList" class="country-list-wrapper">
             <p class="placeholder">Waiting for file...</p>
           </div>
@@ -108,13 +108,436 @@
         </div>
 
         <div class="list-container" style="background-color: #f1f8ee">
-          <h2>Good AAPU (>8)</h2>
+          <h2>Good AAPU (&gt;8)</h2>
           <div id="goodList" class="country-list-wrapper">
             <p class="placeholder">Waiting for file...</p>
           </div>
         </div>
       </div>
 
+      <div
+        id="globalTrendContainer"
+        class="list-container"
+        style="
+          max-width: 1500px;
+          margin: 40px auto;
+          padding: 20px;
+          background: #fff;
+          border: 1px solid #e5e5e5;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        "
+      >
+        <h2
+          style="
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            border-bottom: 2px solid #3b82f6;
+            display: inline-block;
+            padding-bottom: 5px;
+          "
+        >
+          Global Trends & Diagnostics
+        </h2>
+
+        <div
+          class="trend-controls"
+          style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px"
+        >
+          <div
+            class="control-group"
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 5px;
+              position: relative;
+            "
+          >
+            <label style="font-size: 0.85em; font-weight: 600; color: #666"
+              >Select KPI:</label
+            >
+
+            <div id="kpiSelectorWrapper" style="position: relative">
+              <button
+                id="kpiDisplayBtn"
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #e2e8f0;
+                  background: #fff;
+                  width: 230px;
+                  text-align: left;
+                  cursor: pointer;
+                  font-size: 0.9em;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  color: #333;
+                "
+              >
+                <span id="activeKPIText">Avg Ads/User</span>
+                <span style="font-size: 0.7em; color: #666">▼</span>
+              </button>
+
+              <div
+                id="kpiSmartDropdown"
+                style="
+                  display: none;
+                  position: absolute;
+                  top: 100%;
+                  left: 0;
+                  background: #ffffff;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                  padding: 12px;
+                  width: 340px;
+                  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                  z-index: 2500;
+                  margin-top: 5px;
+                "
+              >
+                <div class="kpi-group-box" style="margin-bottom: 12px">
+                  <div
+                    style="
+                      font-size: 0.75em;
+                      font-weight: 700;
+                      color: #64748b;
+                      margin-bottom: 6px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                    "
+                  >
+                    Retention vs Install
+                  </div>
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: repeat(3, 1fr);
+                      gap: 4px;
+                    "
+                  >
+                    <button class="kpi-opt" data-value="% of users at 20">
+                      Lvl 20
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at 50">
+                      Lvl 50
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at 70">
+                      Lvl 70
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at 100">
+                      Lvl 100
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at 150">
+                      Lvl 150
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at 200">
+                      Lvl 200
+                    </button>
+                  </div>
+                </div>
+
+                <div class="kpi-group-box" style="margin-bottom: 12px">
+                  <div
+                    style="
+                      font-size: 0.75em;
+                      font-weight: 700;
+                      color: #64748b;
+                      margin-bottom: 6px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                    "
+                  >
+                    Ad Milestones
+                  </div>
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: repeat(3, 1fr);
+                      gap: 4px;
+                    "
+                  >
+                    <button class="kpi-opt" data-value="% of users at Ads 10">
+                      Ads 10
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at Ads 20">
+                      Ads 20
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at Ads 40">
+                      Ads 40
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at Ads 70">
+                      Ads 70
+                    </button>
+                    <button class="kpi-opt" data-value="% of users at Ads 100">
+                      Ads 100
+                    </button>
+                    <button class="kpi-opt" data-value="Avg Ad per user">
+                      Avg Ads/User
+                    </button>
+                  </div>
+                </div>
+
+                <div class="kpi-group-box">
+                  <div
+                    style="
+                      font-size: 0.75em;
+                      font-weight: 700;
+                      color: #64748b;
+                      margin-bottom: 6px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                    "
+                  >
+                    Retention vs Onboarded
+                  </div>
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: repeat(3, 1fr);
+                      gap: 4px;
+                    "
+                  >
+                    <button class="kpi-opt" data-value="vs Onboard - Lvl 20 %">
+                      Lvl 20
+                    </button>
+                    <button class="kpi-opt" data-value="vs Onboard - Lvl 50 %">
+                      Lvl 50
+                    </button>
+                    <button class="kpi-opt" data-value="vs Onboard - Lvl 70 %">
+                      Lvl 70
+                    </button>
+                    <button class="kpi-opt" data-value="vs Onboard - Lvl 100 %">
+                      Lvl 100
+                    </button>
+                    <button class="kpi-opt" data-value="vs Onboard - Lvl 150 %">
+                      Lvl 150
+                    </button>
+                    <button class="kpi-opt" data-value="vs Onboard - Lvl 200 %">
+                      Lvl 200
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="control-group"
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 5px;
+              position: relative;
+            "
+          >
+            <label style="font-size: 0.85em; font-weight: 600; color: #666"
+              >Date Window:</label
+            >
+            <div id="unifiedDatePickerWrapper" style="position: relative">
+              <button
+                id="dateRangeDisplay"
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #e2e8f0;
+                  background: #fff;
+                  width: 220px;
+                  text-align: left;
+                  cursor: pointer;
+                  font-size: 0.9em;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  color: #333;
+                "
+              >
+                <span id="dateRangeText">Last 30 Days</span>
+                <span style="font-size: 0.7em; color: #666">▼</span>
+              </button>
+
+              <div
+                id="smartDateDropdown"
+                style="
+                  display: none;
+                  position: absolute;
+                  top: 100%;
+                  left: 0;
+                  background: #ffffff;
+                  color: #333;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                  padding: 8px;
+                  width: 240px;
+                  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                  z-index: 2000;
+                  margin-top: 4px;
+                "
+              >
+                <div
+                  class="date-presets"
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    margin-bottom: 6px;
+                    border-bottom: 1px solid #f1f5f9;
+                    padding-bottom: 6px;
+                  "
+                >
+                  <button class="preset-btn" data-range="7">Last 7 Days</button>
+                  <button class="preset-btn" data-range="30">
+                    Last 30 Days
+                  </button>
+                  <button class="preset-btn" data-range="max">
+                    Max Available
+                  </button>
+                  <button class="preset-btn" id="customRangeToggle">
+                    Custom Range
+                  </button>
+                </div>
+
+                <div
+                  id="customCalendarPanel"
+                  style="display: none; padding: 8px"
+                >
+                  <div style="margin-bottom: 10px">
+                    <label
+                      style="
+                        font-size: 0.75em;
+                        color: #64748b;
+                        font-weight: 600;
+                        display: block;
+                        margin-bottom: 4px;
+                      "
+                      >Start Date:</label
+                    >
+                    <input
+                      type="date"
+                      id="customDateStart"
+                      style="
+                        width: 100%;
+                        border: 1px solid #e2e8f0;
+                        padding: 8px;
+                        border-radius: 6px;
+                        font-size: 0.85em;
+                      "
+                    />
+                  </div>
+                  <div style="margin-bottom: 12px">
+                    <label
+                      style="
+                        font-size: 0.75em;
+                        color: #64748b;
+                        font-weight: 600;
+                        display: block;
+                        margin-bottom: 4px;
+                      "
+                      >End Date:</label
+                    >
+                    <input
+                      type="date"
+                      id="customDateEnd"
+                      style="
+                        width: 100%;
+                        border: 1px solid #e2e8f0;
+                        padding: 8px;
+                        border-radius: 6px;
+                        font-size: 0.85em;
+                      "
+                    />
+                  </div>
+                  <button
+                    id="applyCustomDate"
+                    style="
+                      width: 100%;
+                      background: #3b82f6;
+                      color: #fff;
+                      border: none;
+                      padding: 10px;
+                      border-radius: 8px;
+                      cursor: pointer;
+                      font-weight: 600;
+                      font-size: 0.9em;
+                      transition: background 0.2s;
+                    "
+                  >
+                    Apply Range
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="control-group"
+            style="
+              flex-grow: 1;
+              display: flex;
+              flex-direction: column;
+              gap: 5px;
+              position: relative;
+            "
+          >
+            <label style="font-size: 0.85em; font-weight: 600; color: #666"
+              >Add Countries to Graph:</label
+            >
+            <div id="dropdownWrapper" style="position: relative; width: 100%">
+              <input
+                type="text"
+                id="globalTrendCountrySearch"
+                placeholder="Click to select or type country..."
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #e2e8f0;
+                  width: 100%;
+                  background: #fff;
+                  font-size: 0.9em;
+                  transition: border-color 0.2s;
+                "
+              />
+              <div
+                id="globalTrendCountryList"
+                style="
+                  display: none;
+                  position: absolute;
+                  top: 100%;
+                  left: 0;
+                  right: 0;
+                  max-height: 250px;
+                  overflow-y: auto;
+                  background: #fff;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                  margin-top: 4px;
+                  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                  z-index: 100;
+                "
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="activeTrendCountries"
+          style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px"
+        ></div>
+
+        <div
+          class="chart-wrapper"
+          style="
+            height: 450px;
+            position: relative;
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #f3f4f6;
+            border-radius: 8px;
+          "
+        >
+          <canvas id="globalTrendChartCanvas"></canvas>
+        </div>
+      </div>
       <div id="reportModal" class="modal-hidden">
         <div class="dp1-modal-content">
           <button id="closeModalButton">&times;</button>
