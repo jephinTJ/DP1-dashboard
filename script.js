@@ -28,6 +28,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const comparisonModal = document.getElementById("comparisonModal");
   const closeCompareModalBtn = document.getElementById("closeCompareModalBtn");
   const compareContainer = document.getElementById("compareContainer");
+  // --- Global Trends Elements ---
+  const globalKPISelect = document.getElementById("globalTrendKPISelect");
+  const globalCountrySearch = document.getElementById(
+    "globalTrendCountrySearch"
+  );
+  const globalCountryList = document.getElementById("globalTrendCountryList");
+  const globalDateRange = document.getElementById("globalTrendDateRange");
+  const customDateContainer = document.getElementById("customDateContainer");
+  const customDateStart = document.getElementById("customDateStart");
+  const customDateEnd = document.getElementById("customDateEnd");
   // --- End New Elements ---
 
   // --- NEW: State Management ---
@@ -47,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isCompareMode = false;
   let allCountriesData = new Map(); // Stores all country data for search
   let selectedCountriesForCompare = []; // Array to hold selected country names
+  let selectedTrendCountries = new Set(); // For Global Trend Chart
 
   // --- UPLOAD MODAL LOGIC ---
 
@@ -345,6 +356,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Filter to show all (since we cleared search)
     filterCountries();
+
+    // SMART RETENTION: Keep current selections if they exist in the new game data
+    const newSelected = new Set();
+    selectedTrendCountries.forEach((nameKey) => {
+      if (allCountriesData.has(nameKey)) {
+        // Check if it meets the >10 installs rule in the NEW game context
+        if (allCountriesData.get(nameKey).userInstalls > 10) {
+          newSelected.add(nameKey);
+        }
+      }
+    });
+    selectedTrendCountries = newSelected;
+
+    if (globalCountrySearch) globalCountrySearch.value = "";
+    populateTrendCountryList();
+    updateGlobalTrendChart();
   }
 
   // --- Function to process the 'BM' sheet (FIXED: Silent Mode) ---
@@ -507,7 +534,8 @@ document.addEventListener("DOMContentLoaded", () => {
       low: low,
       moderate: moderate,
       good: good,
-      allCountriesMap: localCountriesMap, // Save the specific map
+      allCountriesMap: localCountriesMap,
+      history: crawlHistory(wb), // Build full historical map for all KPIs
     };
 
     renderTabs();
@@ -1544,7 +1572,386 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // --- GLOBAL TRENDS CORE LOGIC ---
+
+  // 1. The Sheet Crawler: Builds history for all KPIs from every date sheet
+  function crawlHistory(wb) {
+    const historyMap = {};
+    const dateSheets = wb.SheetNames.filter((name) => {
+      const parts = name.split("|");
+      const datePart = (parts.length > 1 ? parts.pop() : name).trim();
+      return (
+        !isNaN(Date.parse(datePart + " " + new Date().getFullYear())) &&
+        !name.toUpperCase().includes("BM")
+      );
+    }).sort((a, b) => {
+      const dA = a.split("|").pop().trim();
+      const dB = b.split("|").pop().trim();
+      return (
+        Date.parse(dA + " " + new Date().getFullYear()) -
+        Date.parse(dB + " " + new Date().getFullYear())
+      );
+    });
+
+    const sortedDates = dateSheets.map((s) => s.split("|").pop().trim());
+
+    dateSheets.forEach((sheetName, dateIdx) => {
+      const data = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {
+        header: 1,
+      });
+      if (!data.length) return;
+      const countries = data[0];
+      const kpiRows = data.slice(1);
+
+      for (let col = 1; col < countries.length; col++) {
+        const country = countries[col];
+        if (!country) continue;
+        const countryKey = country.toLowerCase();
+        if (!historyMap[countryKey]) historyMap[countryKey] = {};
+
+        kpiRows.forEach((row) => {
+          const kpi = row[0];
+          if (!kpi) return;
+          if (!historyMap[countryKey][kpi])
+            historyMap[countryKey][kpi] = new Array(sortedDates.length).fill(
+              null
+            );
+          historyMap[countryKey][kpi][dateIdx] =
+            typeof row[col] === "number" ? row[col] : null;
+        });
+      }
+    });
+    return { dates: sortedDates, data: historyMap };
+  }
+
+  // Modern Dropdown Search and Pill Logic
+  function populateTrendCountryList() {
+    if (!globalCountryList || !activeGameKey) return;
+    globalCountryList.innerHTML = "";
+    const searchTerm = globalTrendCountrySearch.value.toLowerCase();
+    const sortedNames = Array.from(allCountriesData.keys()).sort();
+
+    let visibleCount = 0;
+    sortedNames.forEach((nameKey) => {
+      const countryData = allCountriesData.get(nameKey);
+      if (!countryData.name.toLowerCase().includes(searchTerm)) return;
+
+      const item = document.createElement("div");
+      item.className = `dropdown-item ${
+        selectedTrendCountries.has(nameKey) ? "selected" : ""
+      }`;
+      item.textContent = countryData.name;
+      item.onclick = () => {
+        toggleTrendCountry(nameKey);
+        globalTrendCountryList.style.display = "none";
+        globalTrendCountrySearch.value = "";
+      };
+      globalCountryList.appendChild(item);
+      visibleCount++;
+    });
+
+    globalTrendCountryList.style.display =
+      visibleCount > 0 && document.activeElement === globalTrendCountrySearch
+        ? "block"
+        : "none";
+    renderActivePills();
+  }
+
+  function toggleTrendCountry(nameKey) {
+    selectedTrendCountries.has(nameKey)
+      ? selectedTrendCountries.delete(nameKey)
+      : selectedTrendCountries.add(nameKey);
+    updateGlobalTrendChart();
+    renderActivePills();
+  }
+
+  function renderActivePills() {
+    const container = document.getElementById("activeTrendCountries");
+    container.innerHTML = "";
+    selectedTrendCountries.forEach((nameKey) => {
+      const countryData = allCountriesData.get(nameKey);
+      const pill = document.createElement("div");
+      pill.className = "active-pill";
+      pill.innerHTML = `${countryData.name} <span class="remove-btn">×</span>`;
+      pill.querySelector(".remove-btn").onclick = () =>
+        toggleTrendCountry(nameKey);
+      container.appendChild(pill);
+    });
+  }
+
+  // Handle Focus/Blur for Modern Dropdown
+  globalTrendCountrySearch.addEventListener("focus", () => {
+    globalTrendCountryList.style.display = "block";
+    populateTrendCountryList();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!document.getElementById("dropdownWrapper").contains(e.target)) {
+      globalTrendCountryList.style.display = "none";
+    }
+  });
+
+  // 3. Update the Global Chart
+  function updateGlobalTrendChart() {
+    const canvas = document.getElementById("globalTrendChartCanvas");
+    if (!canvas || !activeGameKey) return;
+
+    const gameData = DASHBOARD_STATE[activeGameKey];
+    if (!gameData || !gameData.history) return;
+
+    if (chartInstances.has("globalTrend")) {
+      chartInstances.get("globalTrend").destroy();
+      chartInstances.delete("globalTrend");
+    }
+
+    const kpi = activeKPIValue;
+    const range = globalDateRangeValue; // Use the new unified state variable
+
+    let dates = [...gameData.history.dates];
+    let startIdx = 0;
+    let endIdx = dates.length;
+
+    if (range === "7") {
+      startIdx = Math.max(0, dates.length - 7);
+    } else if (range === "30") {
+      startIdx = Math.max(0, dates.length - 30);
+    } else if (range === "custom") {
+      const sVal = document.getElementById("customDateStart").value;
+      const eVal = document.getElementById("customDateEnd").value;
+      if (sVal && eVal) {
+        const startTs = new Date(sVal).setHours(0, 0, 0, 0);
+        const endTs = new Date(eVal).setHours(23, 59, 59, 999);
+        const year = new Date().getFullYear();
+        const timestamps = dates.map((d) => Date.parse(`${d} ${year}`));
+
+        startIdx = timestamps.findIndex((ts) => ts >= startTs);
+        if (startIdx === -1) startIdx = 0;
+
+        const foundEndIdx = timestamps.findIndex((ts) => ts > endTs);
+        endIdx = foundEndIdx === -1 ? dates.length : foundEndIdx;
+      }
+    }
+
+    const sliceDates = dates.slice(startIdx, endIdx);
+    const datasets = Array.from(selectedTrendCountries).map((countryKey, i) => {
+      const rawValues =
+        gameData.history.data[countryKey] &&
+        gameData.history.data[countryKey][kpi]
+          ? gameData.history.data[countryKey][kpi]
+          : [];
+      const sliceValues = rawValues.slice(startIdx, endIdx);
+      const colors = [
+        "#3b82f6",
+        "#ef4444",
+        "#10b981",
+        "#f59e0b",
+        "#8b5cf6",
+        "#ec4899",
+        "#06b6d4",
+      ];
+      const color = colors[i % colors.length];
+      return {
+        label: allCountriesData.get(countryKey).name,
+        data: sliceValues.map((v) =>
+          kpi.includes("%") && v !== null ? v * 100 : v
+        ),
+        borderColor: color,
+        backgroundColor: color, // Set to same as border for solid colored balls
+        pointBackgroundColor: color, // Ensures points on the line are solid
+        pointRadius: 4, // Makes the balls slightly larger and clearer
+        pointHoverRadius: 6,
+        tension: 0.2,
+        spanGaps: true,
+      };
+    });
+
+    const isPercentage = kpi.includes("%");
+    const ctx = canvas.getContext("2d");
+    chartInstances.set(
+      "globalTrend",
+      new Chart(ctx, {
+        type: "line",
+        data: { labels: sliceDates, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                // Enforces x.xx format on the Y-axis labels
+                callback: (v) =>
+                  isPercentage ? v.toFixed(2) + "%" : v.toFixed(2),
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                usePointStyle: true, // Uses the solid circle in the legend
+                pointStyle: "circle",
+                padding: 20,
+                font: { size: 12, weight: "600" },
+              },
+            },
+            tooltip: {
+              backgroundColor: "rgba(17, 24, 39, 0.9)",
+              padding: 12,
+              titleFont: { size: 14, weight: "bold" },
+              bodyFont: { size: 13 },
+              usePointStyle: true,
+              callbacks: {
+                label: (context) => {
+                  const countryKey = Array.from(selectedTrendCountries)[
+                    context.datasetIndex
+                  ];
+                  const val = context.parsed.y;
+
+                  // Enforces 2 decimal places for all metrics
+                  const formattedVal = isPercentage
+                    ? val.toFixed(2) + "%"
+                    : val.toFixed(2);
+
+                  // NEW: Fetch historical install data for the specific hovered date
+                  const history = gameData.history.data[countryKey];
+                  const dateIdx = startIdx + context.dataIndex;
+                  const dailyInstalls =
+                    history && history["User Installed"]
+                      ? history["User Installed"][dateIdx]
+                      : "N/A";
+
+                  return `${context.dataset.label}: ${formattedVal} (Installs: ${dailyInstalls})`;
+                },
+              },
+            },
+          },
+        },
+      })
+    );
+  }
+
   addFileRow();
+  // --- Global Trends Event Listeners ---
+  if (globalCountrySearch) {
+    globalCountrySearch.addEventListener("input", populateTrendCountryList);
+  }
+  // --- Smart Date Picker Logic ---
+  let globalDateRangeValue = "30"; // Tracks active range state
+  const dateBtn = document.getElementById("dateRangeDisplay");
+  const dateDropdown = document.getElementById("smartDateDropdown");
+  const presetBtns = document.querySelectorAll(".preset-btn");
+  const customToggle = document.getElementById("customRangeToggle");
+  const calendarPanel = document.getElementById("customCalendarPanel");
+
+  if (dateBtn) {
+    dateBtn.onclick = (e) => {
+      e.stopPropagation();
+      const isHidden = dateDropdown.style.display === "none";
+      dateDropdown.style.display = isHidden ? "block" : "none";
+
+      if (isHidden) {
+        // Sync Light-Theme active classes when opening
+        presetBtns.forEach((p) =>
+          p.classList.toggle(
+            "active",
+            p.getAttribute("data-range") === globalDateRangeValue
+          )
+        );
+        if (customToggle)
+          customToggle.classList.toggle(
+            "active",
+            globalDateRangeValue === "custom"
+          );
+      }
+    };
+  }
+
+  presetBtns.forEach((btn) => {
+    btn.onclick = (e) => {
+      e.stopPropagation(); // CRITICAL: Keeps unified popup open when selecting
+      const range = btn.getAttribute("data-range");
+      if (!range) return;
+
+      document.getElementById("dateRangeText").textContent = btn.textContent;
+      globalDateRangeValue = range;
+      if (calendarPanel) calendarPanel.style.display = "none";
+      if (dateDropdown) dateDropdown.style.display = "none";
+      updateGlobalTrendChart();
+    };
+  });
+
+  if (customToggle) {
+    customToggle.onclick = (e) => {
+      e.stopPropagation(); // Stops accidental closing
+      const isVisible = calendarPanel.style.display === "block";
+      calendarPanel.style.display = isVisible ? "none" : "block";
+    };
+  }
+
+  const applyBtn = document.getElementById("applyCustomDate");
+  if (applyBtn) {
+    applyBtn.onclick = (e) => {
+      e.stopPropagation();
+      const s = document.getElementById("customDateStart").value;
+      const eVal = document.getElementById("customDateEnd").value;
+      if (s && eVal) {
+        document.getElementById("dateRangeText").textContent = "Custom Range";
+        globalDateRangeValue = "custom";
+        dateDropdown.style.display = "none";
+        updateGlobalTrendChart();
+      } else {
+        alert("Please select both dates.");
+      }
+    };
+  }
+
+  // Ensure clicking inside the calendar doesn't close the picker
+  if (calendarPanel) {
+    calendarPanel.onclick = (e) => e.stopPropagation();
+  }
+
+  document.addEventListener("click", (e) => {
+    const wrapper = document.getElementById("unifiedDatePickerWrapper");
+    if (wrapper && !wrapper.contains(e.target)) {
+      if (dateDropdown) dateDropdown.style.display = "none";
+    }
+  });
+  // --- Custom KPI Selection Logic (Table View) ---
+  const kpiBtn = document.getElementById("kpiDisplayBtn");
+  const kpiDropdown = document.getElementById("kpiSmartDropdown");
+  const kpiOptions = document.querySelectorAll(".kpi-opt");
+  let activeKPIValue = "Avg Ad per user"; // Default initialization
+
+  if (kpiBtn) {
+    kpiBtn.onclick = (e) => {
+      e.stopPropagation();
+      kpiDropdown.style.display =
+        kpiDropdown.style.display === "none" ? "block" : "none";
+      // Sync UI state
+      kpiOptions.forEach((opt) =>
+        opt.classList.toggle(
+          "active",
+          opt.getAttribute("data-value") === activeKPIValue
+        )
+      );
+    };
+  }
+
+  kpiOptions.forEach((opt) => {
+    opt.onclick = (e) => {
+      e.stopPropagation();
+      activeKPIValue = opt.getAttribute("data-value");
+      document.getElementById("activeKPIText").textContent = opt.textContent;
+      kpiDropdown.style.display = "none";
+      updateGlobalTrendChart();
+    };
+  });
+
+  // Modify updateGlobalTrendChart to use this variable
+  // Find "const kpi = globalKPISelect.value;" and change to "const kpi = activeKPIValue;" inside updateGlobalTrendChart
   // --- FIX: Close Upload Modal on Background Click ---
   uploadModal.addEventListener("click", (event) => {
     // If the user clicks the dark background (the modal itself), close it
