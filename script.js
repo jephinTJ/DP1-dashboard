@@ -304,6 +304,30 @@ document.addEventListener("DOMContentLoaded", () => {
     filterCountries();
   });
 
+  // Helper to convert ISO dates (2026-01-04) to Sheet Name format (4 Jan 26)
+  function normalizeDateForSheet(val) {
+    if (!val) return "";
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return String(val);
+    const day = d.getDate();
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[d.getMonth()];
+    const year = String(d.getFullYear()).slice(-2);
+    return `${day} ${month} ${year}`;
+  }
   // --- NEW: Render Tabs ---
   function renderTabs() {
     const container = document.getElementById("tabsContainer");
@@ -389,7 +413,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const ws = wb.Sheets[bmSheetName];
     const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
-    const headers = data[0];
+    const headers = data[0].map((h) => {
+      // Convert Excel serial numbers (like 46026) to JS Date strings
+      if (typeof h === "number" && h > 40000) {
+        return new Date(Math.round((h - 25569) * 86400 * 1000))
+          .toISOString()
+          .split("T")[0];
+      }
+      return h;
+    });
     const latestDate = headers[1];
     const latestDateCol = 1;
     const totalDays = headers.length - 1;
@@ -426,8 +458,9 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const latestValue = row[latestDateCol];
 
+        const normalizedLatest = normalizeDateForSheet(latestDate);
         const latestSheetName = wb.SheetNames.find((name) =>
-          name.includes(String(latestDate))
+          name.toLowerCase().includes(normalizedLatest.toLowerCase())
         );
 
         if (!latestSheetName) continue;
@@ -526,7 +559,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     DASHBOARD_STATE[key] = {
       workbook: wb,
-      title: `${gameName} AAPU Performance Dashboard of ${latestDate}`,
+      title: `${gameName} AAPU Performance Dashboard of ${normalizeDateForSheet(
+        latestDate
+      )}`,
       totalDays: totalDays,
       critical: criticalCountries,
       below: belowCountries,
@@ -729,12 +764,15 @@ document.addEventListener("DOMContentLoaded", () => {
       chartInstances.delete("main");
     }
 
-    // --- 1. Find sheets ---
+    // --- 1. Find sheets (using normalized year-aware names) ---
+    const normLatest = normalizeDateForSheet(country.latestDate);
+    const normBench = normalizeDateForSheet(country.benchmarkDate);
+
     const latestSheetName = workbook.SheetNames.find((name) =>
-      name.includes(country.latestDate)
+      name.toLowerCase().includes(normLatest.toLowerCase())
     );
     const benchmarkSheetName = workbook.SheetNames.find((name) =>
-      name.includes(country.benchmarkDate)
+      name.toLowerCase().includes(normBench.toLowerCase())
     );
 
     if (!latestSheetName) {
@@ -774,9 +812,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const statusClass = isDown ? "down" : "up";
       const benchmarkFullText = country.isNewBenchmark
         ? `(🚀 New Benchmark!)`
-        : `(Benchmark: ${country.benchmarkAAPU.toFixed(2)} on ${
-            country.benchmarkDate
-          })`;
+        : `(Benchmark: ${country.benchmarkAAPU.toFixed(
+            2
+          )} on ${normalizeDateForSheet(country.benchmarkDate)})`;
       summaryP.innerHTML = `
         <strong>Current AAPU: <span class="${statusClass}">${country.latestAAPU.toFixed(
         2
@@ -941,80 +979,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const retListHTML = generateListItems(retKPIs, true); // Pass 'true' as it's the retention list
     const adListHTML = generateListItems(adKPIs, false); // Pass 'false' as it's the ad list
 
-    // --- 2. *** CORRECTED Trend Analysis Logic *** ---
-    let consecutiveDays = 0;
+    // Trend summary text removed as per request
     let trendSummary = "";
-    let trendSummaryText = "";
-    const trendValues = country.trendValuesRaw;
-    const n = trendValues.length;
-    const trendDaysCount = country.totalDays;
-    const benchmarkAAPU = country.benchmarkAAPU;
-
-    // *** ADD THIS IF CHECK ***
-    if (country.isNewBenchmark) {
-      trendSummaryText = `🚀 New Benchmark!`;
-      trendSummary = `<p>${trendSummaryText}</p>`;
-    }
-    // *** END ADDED IF CHECK ***
-    // Add an 'else' around the original logic
-    else if (n > 0) {
-      if (isDown) {
-        // ... (rest of the original 'isDown' logic remains unchanged inside this else if) ...
-        for (let i = n - 1; i >= 0; i--) {
-          const value = trendValues[i];
-          if (value === null || value < benchmarkAAPU) {
-            consecutiveDays++;
-          } else {
-            break;
-          }
-        }
-        if (
-          consecutiveDays === 1 &&
-          n > 1 &&
-          trendValues[n - 2] !== null &&
-          trendValues[n - 2] >= benchmarkAAPU
-        ) {
-          trendSummaryText = `Dropped below BM today`;
-        } else if (consecutiveDays > 0) {
-          trendSummaryText = `Below BM for last ${consecutiveDays} consecutive day${
-            consecutiveDays > 1 ? "s" : ""
-          }`;
-        } else {
-          trendSummaryText = `Status unclear (check recent data)`;
-        }
-        trendSummary = `<p>${trendSummaryText}.</p>`;
-      } else {
-        // AAPU is UP or Equal (but not a new benchmark today)
-        // ... (rest of the original 'else' logic remains unchanged inside this block) ...
-        for (let i = n - 1; i >= 0; i--) {
-          const value = trendValues[i];
-          if (value !== null && value >= benchmarkAAPU) {
-            consecutiveDays++;
-          } else {
-            break;
-          }
-        }
-        if (
-          consecutiveDays === 1 &&
-          n > 1 &&
-          (trendValues[n - 2] === null || trendValues[n - 2] < benchmarkAAPU)
-        ) {
-          trendSummaryText = `Rose to/above BM today`;
-        } else if (consecutiveDays > 0) {
-          trendSummaryText = `At/Above BM for last ${consecutiveDays} consecutive day${
-            consecutiveDays > 1 ? "s" : ""
-          }`;
-        } else {
-          trendSummaryText = `Status unclear (check recent data)`;
-        }
-        trendSummary = `<p>${trendSummaryText}.</p>`;
-      }
-    } else {
-      // n <= 0
-      trendSummaryText = "Not enough data";
-      trendSummary = `<p>${trendSummaryText}.</p>`;
-    }
-    // --- END Trend Analysis Logic ---
 
     // --- 3. *** FINAL Dynamic Analysis Section (Includes New BM check) *** ---
     let analysisTitle = "Analysis";
@@ -1241,9 +1207,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const statusClass = isDown ? "down" : "up";
       const benchmarkFullText = country.isNewBenchmark
         ? `(🚀 New Benchmark!)`
-        : `(Benchmark: ${country.benchmarkAAPU.toFixed(2)} on ${
-            country.benchmarkDate
-          })`;
+        : `(Benchmark: ${country.benchmarkAAPU.toFixed(
+            2
+          )} on ${normalizeDateForSheet(country.benchmarkDate)})`;
 
       finalDetailsHTML += `
         <div class="report-header">
@@ -1298,7 +1264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Only add these sections if the toggle is OFF (useVsOnboard is false)
     if (!useVsOnboard) {
       finalDetailsHTML += `
-            <h3>Trend Analysis (last ${reportData.trendDaysCount} days)</h3> 
+            <h3>Trend Analysis (last 7 days)</h3> 
             ${reportData.trendSummary} 
             <canvas id="trendChart-${reportId}" height="150"></canvas> 
             `;
@@ -1387,7 +1353,8 @@ document.addEventListener("DOMContentLoaded", () => {
           // <-- CREATES newChart
           type: "line",
           data: {
-            labels: country.trendDates, // <-- USES LOCAL country VARIABLE
+            // Format each date in the trend array to "4 Jan 26" format
+            labels: country.trendDates.map((d) => normalizeDateForSheet(d)),
             datasets: [
               {
                 label: `Last ${country.trendDates.length} Days AAPU`,
@@ -1489,13 +1456,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // --- Get KPI data for this country ---
 
-      // FIX: Changed 'wb' to 'workbook' (The global variable)
+      // Use the year-aware normalization helper for sheet discovery
+      const normLatest = normalizeDateForSheet(countryData.latestDate);
+      const normBench = normalizeDateForSheet(countryData.benchmarkDate);
+
       const latestSheetName = workbook.SheetNames.find((name) =>
-        name.includes(countryData.latestDate)
+        name.toLowerCase().includes(normLatest.toLowerCase())
       );
 
       const benchmarkSheetName = workbook.SheetNames.find((name) =>
-        name.includes(countryData.benchmarkDate)
+        name.toLowerCase().includes(normBench.toLowerCase())
       );
 
       if (!latestSheetName) {
@@ -1581,17 +1551,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const dateSheets = wb.SheetNames.filter((name) => {
       const parts = name.split("|");
       const datePart = (parts.length > 1 ? parts.pop() : name).trim();
-      return (
-        !isNaN(Date.parse(datePart + " " + new Date().getFullYear())) &&
-        !name.toUpperCase().includes("BM")
-      );
+      // Since datePart now contains the year (e.g. "4 Jan 26"), we parse it directly
+      return !isNaN(Date.parse(datePart)) && !name.toUpperCase().includes("BM");
     }).sort((a, b) => {
       const dA = a.split("|").pop().trim();
       const dB = b.split("|").pop().trim();
-      return (
-        Date.parse(dA + " " + new Date().getFullYear()) -
-        Date.parse(dB + " " + new Date().getFullYear())
-      );
+      return Date.parse(dA) - Date.parse(dB);
     });
 
     const sortedDates = dateSheets.map((s) => s.split("|").pop().trim());
