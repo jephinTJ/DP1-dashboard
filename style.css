@@ -884,8 +884,10 @@
   font-weight: 500;
 }
 
-#dp1-dashboard-root .secondary-btn:hover {
-  background-color: #dde1e2;
+#dp1-dashboard-root #clearTrendFilters:hover {
+  background-color: #fff1f2 !important;
+  border-color: #fecaca !important;
+  color: #e11d48 !important;
 }
 
 @keyframes slideIn {
@@ -969,7 +971,34 @@
 #dp1-dashboard-root .dropdown-item:hover {
   background-color: #edf2f7;
 }
-
+/* --- Group Selection Styles --- */
+#dp1-dashboard-root .group-item {
+  background-color: #f8fafc;
+  font-weight: 700 !important;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+}
+#dp1-dashboard-root .group-item:hover {
+  background-color: #f1f5f9;
+}
+#dp1-dashboard-root .group-item .count-badge {
+  font-size: 0.8em;
+  background: #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: #475569;
+}
+#dp1-dashboard-root .group-item.group-low {
+  border-left: 6px solid #ffcfcf !important;
+}
+#dp1-dashboard-root .group-item.group-moderate {
+  border-left: 6px solid #fdf2b3 !important;
+}
+#dp1-dashboard-root .group-item.group-good {
+  border-left: 6px solid #c6eac3 !important;
+}
 #dp1-dashboard-root .dropdown-item.selected {
   background-color: #ebf8ff;
   color: #2b6cb0;
