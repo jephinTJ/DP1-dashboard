@@ -1088,10 +1088,12 @@
   padding-right: 30px !important;
 }
 
-#dp1-dashboard-root #globalTrendKPISelect:focus {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-  outline: none;
+/* --- Added Hover Effects for Dropdown Buttons --- */
+#dp1-dashboard-root #kpiDisplayBtn:hover,
+#dp1-dashboard-root #dateRangeDisplay:hover {
+  border-color: #3b82f6 !important; /* Turns border blue */
+  background-color: #f8faff !important; /* Adds very light blue tint */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Soft shadow */
 }
 
 #dp1-dashboard-root optgroup {
