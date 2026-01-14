@@ -1651,12 +1651,6 @@ document.addEventListener("DOMContentLoaded", () => {
     populateTrendCountryList();
   });
 
-  document.addEventListener("click", (e) => {
-    if (!document.getElementById("dropdownWrapper").contains(e.target)) {
-      globalTrendCountryList.style.display = "none";
-    }
-  });
-
   // 3. Update the Global Chart
   function updateGlobalTrendChart() {
     const canvas = document.getElementById("globalTrendChartCanvas");
@@ -1878,10 +1872,23 @@ document.addEventListener("DOMContentLoaded", () => {
     calendarPanel.onclick = (e) => e.stopPropagation();
   }
 
+  // --- GLOBAL MANAGER: Close all dropdowns on outside click ---
   document.addEventListener("click", (e) => {
-    const wrapper = document.getElementById("unifiedDatePickerWrapper");
-    if (wrapper && !wrapper.contains(e.target)) {
+    const dateWrapper = document.getElementById("unifiedDatePickerWrapper");
+    const kpiWrapper = document.getElementById("kpiSelectorWrapper");
+    const countryWrapper = document.getElementById("dropdownWrapper");
+
+    // Close Date Window
+    if (dateWrapper && !dateWrapper.contains(e.target)) {
       if (dateDropdown) dateDropdown.style.display = "none";
+    }
+    // Close KPI Selector
+    if (kpiWrapper && !kpiWrapper.contains(e.target)) {
+      if (kpiDropdown) kpiDropdown.style.display = "none";
+    }
+    // Close Country Search
+    if (countryWrapper && !countryWrapper.contains(e.target)) {
+      if (globalTrendCountryList) globalTrendCountryList.style.display = "none";
     }
   });
   // --- Custom KPI Selection Logic (Table View) ---
