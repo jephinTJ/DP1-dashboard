@@ -1590,14 +1590,41 @@ document.addEventListener("DOMContentLoaded", () => {
     return { dates: sortedDates, data: historyMap };
   }
 
-  // Modern Dropdown Search and Pill Logic
+  // Modern Dropdown Search and Pill Logic (Updated with Groups)
   function populateTrendCountryList() {
     if (!globalCountryList || !activeGameKey) return;
     globalCountryList.innerHTML = "";
     const searchTerm = globalTrendCountrySearch.value.toLowerCase();
-    const sortedNames = Array.from(allCountriesData.keys()).sort();
+    const game = DASHBOARD_STATE[activeGameKey];
 
+    // 1. ADD BATCH GROUPS (Only if not searching)
+    if (!searchTerm) {
+      const categories = [
+        { label: "Group: Low AAPU", key: "low", color: "#fff8f8" },
+        { label: "Group: Moderate AAPU", key: "moderate", color: "#fcfbf1" },
+        { label: "Group: Good AAPU", key: "good", color: "#f1f8ee" },
+      ];
+
+      categories.forEach((cat) => {
+        const count = game[cat.key].length;
+        if (count === 0) return;
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = `dropdown-item group-item group-${cat.key}`;
+        groupDiv.innerHTML = `<span>${cat.label}</span> <span class="count-badge">${count}</span>`;
+        groupDiv.onclick = (e) => {
+          e.stopPropagation();
+          toggleTrendGroup(cat.key);
+          globalTrendCountryList.style.display = "none";
+        };
+        globalCountryList.appendChild(groupDiv);
+      });
+    }
+
+    // 2. RENDER COUNTRIES
+    const sortedNames = Array.from(allCountriesData.keys()).sort();
     let visibleCount = 0;
+
     sortedNames.forEach((nameKey) => {
       const countryData = allCountriesData.get(nameKey);
       if (!countryData.name.toLowerCase().includes(searchTerm)) return;
@@ -1617,9 +1644,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     globalTrendCountryList.style.display =
-      visibleCount > 0 && document.activeElement === globalTrendCountrySearch
+      (visibleCount > 0 || !searchTerm) &&
+      document.activeElement === globalTrendCountrySearch
         ? "block"
         : "none";
+    renderActivePills();
+  }
+
+  // Batch Select Helper
+  function toggleTrendGroup(groupKey) {
+    const game = DASHBOARD_STATE[activeGameKey];
+    const groupCountries = game[groupKey].map((c) => c.name.toLowerCase());
+
+    // Check if ALL countries in this group are already selected
+    const allSelected = groupCountries.every((name) =>
+      selectedTrendCountries.has(name)
+    );
+
+    if (allSelected) {
+      // If all selected, deselect them all
+      groupCountries.forEach((name) => selectedTrendCountries.delete(name));
+    } else {
+      // Otherwise, add any missing ones
+      groupCountries.forEach((name) => selectedTrendCountries.add(name));
+    }
+
+    updateGlobalTrendChart();
     renderActivePills();
   }
 
@@ -1727,6 +1777,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isPercentage = kpi.includes("%");
     const ctx = canvas.getContext("2d");
+
     chartInstances.set(
       "globalTrend",
       new Chart(ctx, {
@@ -1736,11 +1787,29 @@ document.addEventListener("DOMContentLoaded", () => {
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
+          // 1. TRACKER: Record exactly which date is being touched
+          onHover: (event, elements, chart) => {
+            chart.hoveredIdx = elements.length > 0 ? elements[0].index : -1;
+            chart.update("none"); // Instant update
+          },
           scales: {
+            x: {
+              ticks: {
+                // 2. DYNAMIC LOOK: Bold/Black logic matched to mouse movement
+                font: (ctx) => {
+                  const active = ctx.chart.hoveredIdx === ctx.index;
+                  return {
+                    weight: active ? "bold" : "normal",
+                    size: active ? 13 : 12,
+                  };
+                },
+                color: (ctx) =>
+                  ctx.chart.hoveredIdx === ctx.index ? "#000000" : "#666666",
+              },
+            },
             y: {
               beginAtZero: true,
               ticks: {
-                // Enforces x.xx format on the Y-axis labels
                 callback: (v) =>
                   isPercentage ? v.toFixed(2) + "%" : v.toFixed(2),
               },
@@ -1750,7 +1819,7 @@ document.addEventListener("DOMContentLoaded", () => {
             legend: {
               position: "bottom",
               labels: {
-                usePointStyle: true, // Uses the solid circle in the legend
+                usePointStyle: true,
                 pointStyle: "circle",
                 padding: 20,
                 font: { size: 12, weight: "600" },
@@ -1768,13 +1837,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     context.datasetIndex
                   ];
                   const val = context.parsed.y;
-
-                  // Enforces 2 decimal places for all metrics
                   const formattedVal = isPercentage
                     ? val.toFixed(2) + "%"
                     : val.toFixed(2);
-
-                  // NEW: Fetch historical install data for the specific hovered date
                   const history = gameData.history.data[countryKey];
                   const dateIdx = startIdx + context.dataIndex;
                   const dailyInstalls =
@@ -1790,6 +1855,14 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       })
     );
+    // --- CONSOLIDATED RESET: Fixes sticky bold dates on mouse exit ---
+    canvas.onmouseout = () => {
+      const chart = chartInstances.get("globalTrend");
+      if (chart) {
+        chart.hoveredIdx = -1; // Resets the correct variable used in tick font logic
+        chart.update("none");
+      }
+    };
   }
 
   addFileRow();
@@ -1864,6 +1937,15 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         alert("Please select both dates.");
       }
+    };
+  }
+  const clearTrendBtn = document.getElementById("clearTrendFilters");
+  if (clearTrendBtn) {
+    clearTrendBtn.onclick = () => {
+      selectedTrendCountries.clear();
+      if (globalTrendCountrySearch) globalTrendCountrySearch.value = "";
+      updateGlobalTrendChart();
+      renderActivePills();
     };
   }
 
