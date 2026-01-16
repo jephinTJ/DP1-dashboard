@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeCompareModalBtn = document.getElementById("closeCompareModalBtn");
   const compareContainer = document.getElementById("compareContainer");
   // --- Global Trends Elements ---
-  const globalKPISelect = document.getElementById("globalTrendKPISelect");
+  // const globalKPISelect = document.getElementById("globalTrendKPISelect");
   const globalCountrySearch = document.getElementById(
     "globalTrendCountrySearch"
   );
@@ -249,7 +249,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // We empty the dashboard state so deleted games disappear
     Object.keys(DASHBOARD_STATE).forEach((key) => delete DASHBOARD_STATE[key]);
     activeGameKey = null;
-    renderTabs(); // This clears the old tabs immediately
+    workbook = null; // Clear global workbook reference
+    allCountriesData.clear(); // Clear search map
+    renderTabs();
 
     // Step 3: Process the current files
     rows.forEach((row) => {
@@ -789,9 +791,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const latestKPIs = getKPIsForCountry(latestSheetName, country.name);
+    // Pass workbook explicitly to avoid tab-sync issues
+    const latestKPIs = getKPIsForCountry(
+      latestSheetName,
+      country.name,
+      workbook
+    );
     const benchmarkKPIs = benchmarkSheetName
-      ? getKPIsForCountry(benchmarkSheetName, country.name)
+      ? getKPIsForCountry(benchmarkSheetName, country.name, workbook)
       : null;
 
     // --- 2. Store data globally for toggle ---
@@ -1731,8 +1738,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sVal && eVal) {
         const startTs = new Date(sVal).setHours(0, 0, 0, 0);
         const endTs = new Date(eVal).setHours(23, 59, 59, 999);
-        const year = new Date().getFullYear();
-        const timestamps = dates.map((d) => Date.parse(`${d} ${year}`));
+        // Parse date directly from sheet name format (e.g., "4 Jan 26")
+        const timestamps = dates.map((d) => Date.parse(d));
 
         startIdx = timestamps.findIndex((ts) => ts >= startTs);
         if (startIdx === -1) startIdx = 0;
@@ -1784,6 +1791,9 @@ document.addEventListener("DOMContentLoaded", () => {
         type: "line",
         data: { labels: sliceDates, datasets },
         options: {
+          layout: {
+            padding: { left: 15, right: 15 }, // Gives labels space to grow bold without nudging the axis
+          },
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
@@ -1794,17 +1804,27 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           scales: {
             x: {
+              offset: false, // Line starts exactly at the Y-axis (No more gap)
+              afterFit: (scale) => {
+                scale.height = 75;
+              },
               ticks: {
-                // 2. DYNAMIC LOOK: Bold/Black logic matched to mouse movement
+                // Removed align: 'inner' to prevent horizontal nudging
+                minRotation: 45,
+                maxRotation: 45,
+                padding: 10, // Adds breathing room from the axis line
+                color: (ctx) =>
+                  ctx.chart.hoveredIdx === ctx.index ? "#000" : "#222", // High contrast base color
                 font: (ctx) => {
                   const active = ctx.chart.hoveredIdx === ctx.index;
                   return {
-                    weight: active ? "bold" : "normal",
-                    size: active ? 13 : 12,
+                    family:
+                      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif",
+                    weight: active ? "700" : "400",
+                    size: 12,
+                    style: "normal",
                   };
                 },
-                color: (ctx) =>
-                  ctx.chart.hoveredIdx === ctx.index ? "#000000" : "#666666",
               },
             },
             y: {
