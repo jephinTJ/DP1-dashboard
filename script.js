@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Global Trends Elements ---
   // const globalKPISelect = document.getElementById("globalTrendKPISelect");
   const globalCountrySearch = document.getElementById(
-    "globalTrendCountrySearch"
+    "globalTrendCountrySearch",
   );
   const globalCountryList = document.getElementById("globalTrendCountryList");
   const globalDateRange = document.getElementById("globalTrendDateRange");
@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const existingNames = new Set(
         Array.from(fileRowContainer.querySelectorAll(".file-row"))
           .filter((row) => row.customFile)
-          .map((row) => row.customFile.name)
+          .map((row) => row.customFile.name),
       );
 
       // 2. Filter duplicates
@@ -403,11 +403,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Function to process the 'BM' sheet (FIXED: Silent Mode) ---
   function processBenchmarkSheet(fileName, wb) {
     const bmSheetName = wb.SheetNames.find(
-      (name) => name.toUpperCase() === "BM"
+      (name) => name.toUpperCase() === "BM",
     );
     if (!bmSheetName) {
       alert(
-        `Error: The file "${fileName}" does not contain a "BM" sheet.\n\nPlease upload the processed "All Geo.xlsx" file, not the raw CSV.`
+        `Error: The file "${fileName}" does not contain a "BM" sheet.\n\nPlease upload the processed "All Geo.xlsx" file, not the raw CSV.`,
       );
       return;
     }
@@ -462,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const normalizedLatest = normalizeDateForSheet(latestDate);
         const latestSheetName = wb.SheetNames.find((name) =>
-          name.toLowerCase().includes(normalizedLatest.toLowerCase())
+          name.toLowerCase().includes(normalizedLatest.toLowerCase()),
         );
 
         if (!latestSheetName) continue;
@@ -506,7 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .reverse();
 
         const trendValuesFormatted = trendValuesRaw.map((v) =>
-          v !== null ? v.toFixed(2) : null
+          v !== null ? v.toFixed(2) : null,
         );
 
         if (typeof latestValue === "number" && benchmarkValue > -1) {
@@ -562,7 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
     DASHBOARD_STATE[key] = {
       workbook: wb,
       title: `${gameName} AAPU Performance Dashboard of ${normalizeDateForSheet(
-        latestDate
+        latestDate,
       )}`,
       totalDays: totalDays,
       critical: criticalCountries,
@@ -609,7 +609,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.innerHTML = `
           <strong>${country.name}</strong>
           <span>${country.latestAAPU.toFixed(
-            2
+            2,
           )} <small>${bmText}</small></span> 
  `;
       // *** REPLACE END ***
@@ -735,7 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
           setTimeout(() => {
             // Pass the names (lowercase) to the existing function
             showComparisonReport(
-              selectedCountriesForCompare.map((name) => name.toLowerCase())
+              selectedCountriesForCompare.map((name) => name.toLowerCase()),
             );
             // Reset after showing report
             clearCompareSelections();
@@ -753,10 +753,10 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedCountriesForCompare = []; // Reset array
     // Remove visual style from all items
     const allSelectedItems = document.querySelectorAll(
-      ".country-item.selected-for-compare"
+      ".country-item.selected-for-compare",
     );
     allSelectedItems.forEach((item) =>
-      item.classList.remove("selected-for-compare")
+      item.classList.remove("selected-for-compare"),
     );
   }
   function showWTHReport(country) {
@@ -771,10 +771,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const normBench = normalizeDateForSheet(country.benchmarkDate);
 
     const latestSheetName = workbook.SheetNames.find((name) =>
-      name.toLowerCase().includes(normLatest.toLowerCase())
+      name.toLowerCase().includes(normLatest.toLowerCase()),
     );
     const benchmarkSheetName = workbook.SheetNames.find((name) =>
-      name.toLowerCase().includes(normBench.toLowerCase())
+      name.toLowerCase().includes(normBench.toLowerCase()),
     );
 
     if (!latestSheetName) {
@@ -795,7 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const latestKPIs = getKPIsForCountry(
       latestSheetName,
       country.name,
-      workbook
+      workbook,
     );
     const benchmarkKPIs = benchmarkSheetName
       ? getKPIsForCountry(benchmarkSheetName, country.name, workbook)
@@ -811,7 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // *** NEW: Update the static summary in the header ***
     const summaryP = document.querySelector(
-      ".dp1-modal-content .report-header p.summary"
+      ".dp1-modal-content .report-header p.summary",
     );
     if (summaryP) {
       const isDown =
@@ -820,12 +820,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const benchmarkFullText = country.isNewBenchmark
         ? `(🚀 New Benchmark!)`
         : `(Benchmark: ${country.benchmarkAAPU.toFixed(
-            2
+            2,
           )} on ${normalizeDateForSheet(country.benchmarkDate)})`;
       summaryP.innerHTML = `
         <strong>Current AAPU: <span class="${statusClass}">${country.latestAAPU.toFixed(
-        2
-      )}</span></strong> 
+          2,
+        )}</span></strong> 
         <small>${benchmarkFullText}</small>
     `;
     }
@@ -837,7 +837,7 @@ document.addEventListener("DOMContentLoaded", () => {
       currentLatestKPIs,
       currentBenchmarkKPIs,
       false, // Default to "vs Install"
-      "main" // The ID for this report
+      "main", // The ID for this report
     );
 
     // --- 4. Show Modal ---
@@ -976,7 +976,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return `<li>${k.name}: <strong class="${cssClass}">${(
             l * 100
           ).toFixed(
-            2
+            2,
           )}%${kpiWarningSymbol}</strong> <small>${bmText}</small></li>`;
         })
         .join("");
@@ -1176,7 +1176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     latest,
     bench,
     useVsOnboard,
-    reportId
+    reportId,
   ) {
     if (!country || !latest) {
       containerEl.innerHTML =
@@ -1190,7 +1190,7 @@ document.addEventListener("DOMContentLoaded", () => {
       latest,
       bench,
       useVsOnboard,
-      reportId // Pass the ID
+      reportId, // Pass the ID
     );
 
     const userCountHTML = useVsOnboard
@@ -1215,7 +1215,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const benchmarkFullText = country.isNewBenchmark
         ? `(🚀 New Benchmark!)`
         : `(Benchmark: ${country.benchmarkAAPU.toFixed(
-            2
+            2,
           )} on ${normalizeDateForSheet(country.benchmarkDate)})`;
 
       finalDetailsHTML += `
@@ -1223,8 +1223,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <h2>Country Performance: ${country.name}${userCountHTML}</h2>
             <p class="summary">
               <strong>Current AAPU: <span class="${statusClass}">${country.latestAAPU.toFixed(
-        2
-      )}</span></strong> 
+                2,
+              )}</span></strong> 
               <small>${benchmarkFullText}</small>
             </p>
         </div>
@@ -1288,13 +1288,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 4. Add Event Listeners for *this* instance ---
     const retentionToggle = document.getElementById(
-      `retentionToggle-${reportId}`
+      `retentionToggle-${reportId}`,
     );
     const toggleLabelInstall = document.getElementById(
-      `toggleLabelInstall-${reportId}`
+      `toggleLabelInstall-${reportId}`,
     );
     const toggleLabelOnboard = document.getElementById(
-      `toggleLabelOnboard-${reportId}`
+      `toggleLabelOnboard-${reportId}`,
     );
 
     if (retentionToggle) {
@@ -1316,7 +1316,7 @@ document.addEventListener("DOMContentLoaded", () => {
             latest,
             bench,
             isChecked,
-            reportId
+            reportId,
           );
           // --- END RECURSIVE CALL ---
 
@@ -1342,7 +1342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!useVsOnboard) {
       setTimeout(() => {
         const trendChartCanvas = document.getElementById(
-          `trendChart-${reportId}` // <-- USES THE DYNAMIC ID
+          `trendChart-${reportId}`, // <-- USES THE DYNAMIC ID
         );
         if (!trendChartCanvas) {
           return; // This is fine, it means we are in toggle mode
@@ -1468,11 +1468,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const normBench = normalizeDateForSheet(countryData.benchmarkDate);
 
       const latestSheetName = workbook.SheetNames.find((name) =>
-        name.toLowerCase().includes(normLatest.toLowerCase())
+        name.toLowerCase().includes(normLatest.toLowerCase()),
       );
 
       const benchmarkSheetName = workbook.SheetNames.find((name) =>
-        name.toLowerCase().includes(normBench.toLowerCase())
+        name.toLowerCase().includes(normBench.toLowerCase()),
       );
 
       if (!latestSheetName) {
@@ -1501,7 +1501,7 @@ document.addEventListener("DOMContentLoaded", () => {
         latestKPIs,
         benchmarkKPIs,
         false, // Default to "vs Install"
-        `compare${index + 1}`
+        `compare${index + 1}`,
       );
     });
 
@@ -1537,12 +1537,12 @@ document.addEventListener("DOMContentLoaded", () => {
           item.innerHTML = `<strong>${
             country.name
           }</strong> <span>${country.latestAAPU.toFixed(
-            2
+            2,
           )} <small>${bmText}</small></span>`;
           item.addEventListener("click", () =>
             isCompareMode
               ? handleCompareSelection(country, item)
-              : showWTHReport(country)
+              : showWTHReport(country),
           );
           element.appendChild(item);
         });
@@ -1587,7 +1587,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!kpi) return;
           if (!historyMap[countryKey][kpi])
             historyMap[countryKey][kpi] = new Array(sortedDates.length).fill(
-              null
+              null,
             );
           historyMap[countryKey][kpi][dateIdx] =
             typeof row[col] === "number" ? row[col] : null;
@@ -1665,7 +1665,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check if ALL countries in this group are already selected
     const allSelected = groupCountries.every((name) =>
-      selectedTrendCountries.has(name)
+      selectedTrendCountries.has(name),
     );
 
     if (allSelected) {
@@ -1756,7 +1756,12 @@ document.addEventListener("DOMContentLoaded", () => {
         gameData.history.data[countryKey][kpi]
           ? gameData.history.data[countryKey][kpi]
           : [];
-      const sliceValues = rawValues.slice(startIdx, endIdx);
+      const installHistory =
+        gameData.history.data[countryKey]["User Installed"] || [];
+      const sliceInstalls = installHistory.slice(startIdx, endIdx);
+      const sliceValues = rawValues
+        .slice(startIdx, endIdx)
+        .map((v, idx) => (sliceInstalls[idx] > 10 ? v : null));
       const colors = [
         "#3b82f6",
         "#ef4444",
@@ -1770,7 +1775,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return {
         label: allCountriesData.get(countryKey).name,
         data: sliceValues.map((v) =>
-          kpi.includes("%") && v !== null ? v * 100 : v
+          kpi.includes("%") && v !== null ? v * 100 : v,
         ),
         borderColor: color,
         backgroundColor: color, // Set to same as border for solid colored balls
@@ -1873,7 +1878,7 @@ document.addEventListener("DOMContentLoaded", () => {
             },
           },
         },
-      })
+      }),
     );
     // --- CONSOLIDATED RESET: Fixes sticky bold dates on mouse exit ---
     canvas.onmouseout = () => {
@@ -1909,13 +1914,13 @@ document.addEventListener("DOMContentLoaded", () => {
         presetBtns.forEach((p) =>
           p.classList.toggle(
             "active",
-            p.getAttribute("data-range") === globalDateRangeValue
-          )
+            p.getAttribute("data-range") === globalDateRangeValue,
+          ),
         );
         if (customToggle)
           customToggle.classList.toggle(
             "active",
-            globalDateRangeValue === "custom"
+            globalDateRangeValue === "custom",
           );
       }
     };
@@ -2008,8 +2013,8 @@ document.addEventListener("DOMContentLoaded", () => {
       kpiOptions.forEach((opt) =>
         opt.classList.toggle(
           "active",
-          opt.getAttribute("data-value") === activeKPIValue
-        )
+          opt.getAttribute("data-value") === activeKPIValue,
+        ),
       );
     };
   }
