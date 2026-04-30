@@ -552,7 +552,7 @@ document.addEventListener("DOMContentLoaded", () => {
       moderate = [],
       good = [];
     localCountriesMap.forEach((c) => {
-      if (c.latestAAPU < 7) low.push(c);
+      if (c.latestAAPU < 6) low.push(c);
       else if (c.latestAAPU <= 8) moderate.push(c);
       else good.push(c);
     });
